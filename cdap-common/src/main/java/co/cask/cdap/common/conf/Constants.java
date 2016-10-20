@@ -126,6 +126,7 @@ public final class Constants {
     public static final String SERVER_ADDRESS_DEPRECATED = "app.bind.address";
     public static final String SERVER_PORT = "app.bind.port";
     public static final String SERVER_ANNOUNCE_PORT = "app.announce.port";
+    public static final String SERVER_SSL_PORT = "app.ssl.bind.port";
     public static final String OUTPUT_DIR = "app.output.dir";
     public static final String TEMP_DIR = "app.temp.dir";
     public static final String REST_PORT = "app.rest.port";
@@ -741,6 +742,20 @@ public final class Constants {
     public static final String BASIC_REALM_FILE = "security.authentication.basic.realmfile";
     /** Enables SSL */
     public static final String SSL_ENABLED = "ssl.enabled";
+
+    /**
+     * App Fabric
+     */
+    public static final class AppFabric {
+      /** Enables SSL for app fabric server. */
+      public static final String SSL_ENABLED = "app.fabric.ssl.enabled";
+      /** Password for the java keystore. */
+      public static final String SSL_FILE_KEYSTORE_PATH = "app.fabric.ssl.keystore.path";
+      /** Password for the java keystore. */
+      public static final String SSL_KEYSTORE_PASSWORD = "app.fabric.ssl.password";
+      /** Type for the java keystore. */
+      public static final String SSL_KEYSTORE_TYPE = "app.fabric.ssl.keystore.type";
+    }
 
     /**
      * Authorization.

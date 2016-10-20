@@ -259,6 +259,14 @@
   </property>
 
   <property>
+    <name>app.ssl.enabled</name>
+    <value>${ssl.enabled}</value>
+    <description>
+      Enable SSL between Router and App Fabric
+    </description>
+  </property>
+
+  <property>
     <name>app.output.dir</name>
     <value>/programs</value>
     <description>

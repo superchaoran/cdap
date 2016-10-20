@@ -175,7 +175,7 @@ public class AppFabricServer extends AbstractIdleService {
     }
 
     // Run http service on random port
-    httpService = new CommonNettyHttpServiceBuilder(configuration)
+    NettyHttpService.Builder httpServiceBuilder = new CommonNettyHttpServiceBuilder(configuration)
       .setHost(hostname.getCanonicalHostName())
       .setPort(configuration.getInt(Constants.AppFabric.SERVER_PORT))
       .setHandlerHooks(builder.build())
@@ -187,16 +187,19 @@ public class AppFabricServer extends AbstractIdleService {
       .setBossThreadPoolSize(configuration.getInt(Constants.AppFabric.BOSS_THREADS,
                                                   Constants.AppFabric.DEFAULT_BOSS_THREADS))
       .setWorkerThreadPoolSize(configuration.getInt(Constants.AppFabric.WORKER_THREADS,
-                                                    Constants.AppFabric.DEFAULT_WORKER_THREADS))
-      .modifyChannelPipeline(new Function<ChannelPipeline, ChannelPipeline>() {
+                                                    Constants.AppFabric.DEFAULT_WORKER_THREADS));
+    if (isSSLEnabled()) {
+      httpServiceBuilder.modifyChannelPipeline(new Function<ChannelPipeline, ChannelPipeline>() {
         @Override
         public ChannelPipeline apply(ChannelPipeline input) {
           LOG.debug("Adding ssl handler to the pipeline.");
           input.addLast("ssl", sslHandlerFactory.create());
           return input;
         }
-      })
-      .build();
+      });
+    }
+
+    httpService = httpServiceBuilder.build();
 
     // Add a listener so that when the service started, register with service discovery.
     // Remove from service discovery when it is stopped.

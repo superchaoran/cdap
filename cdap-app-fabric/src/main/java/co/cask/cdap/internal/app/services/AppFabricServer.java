@@ -54,6 +54,7 @@ import org.apache.twill.discovery.Discoverable;
 import org.apache.twill.discovery.DiscoveryService;
 import org.apache.twill.internal.ServiceListenerAdapter;
 import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -192,8 +193,11 @@ public class AppFabricServer extends AbstractIdleService {
       httpServiceBuilder.modifyChannelPipeline(new Function<ChannelPipeline, ChannelPipeline>() {
         @Override
         public ChannelPipeline apply(ChannelPipeline input) {
-          LOG.debug("Adding ssl handler to the pipeline.");
-          input.addLast("ssl", sslHandlerFactory.create());
+          LOG.info("Adding ssl handler to the pipeline.");
+          SslHandler sslHandler = sslHandlerFactory.create();
+          sslHandler.getEngine().setNeedClientAuth(true);
+          sslHandler.setIssueHandshake(true);
+          input.addLast("ssl", sslHandler);
           return input;
         }
       });

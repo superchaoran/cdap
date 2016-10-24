@@ -57,6 +57,7 @@ import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
@@ -67,6 +68,8 @@ import java.io.File;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
@@ -74,6 +77,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 
 /**
  * Proxies request to a set of servers. Experimental.
@@ -97,6 +102,7 @@ public class NettyRouter extends AbstractIdleService {
   private final CConfiguration configuration;
   private final String realm;
   private final boolean sslEnabled;
+  private final boolean appSslEnabled;
   private final SSLHandlerFactory sslHandlerFactory;
   private final int connectionTimeout;
 
@@ -125,6 +131,7 @@ public class NettyRouter extends AbstractIdleService {
     this.discoveryServiceClient = discoveryServiceClient;
     this.configuration = cConf;
     this.sslEnabled = cConf.getBoolean(Constants.Security.SSL_ENABLED);
+    this.appSslEnabled = cConf.getBoolean(Constants.Security.SSL_ENABLED);
     boolean webAppEnabled = cConf.getBoolean(Constants.Router.WEBAPP_ENABLED);
     if (isSSLEnabled()) {
       this.serviceToPortMap.put(Constants.Router.GATEWAY_DISCOVERY_NAME,
@@ -312,7 +319,6 @@ public class NettyRouter extends AbstractIdleService {
         new NioClientBossPool(clientBossExecutor, clientBossThreadPoolSize),
         new NioWorkerPool(clientWorkerExecutor, clientWorkerThreadPoolSize)));
 
-
     clientBootstrap.setPipelineFactory(new ChannelPipelineFactory() {
       @Override
       public ChannelPipeline getPipeline() throws Exception {
@@ -328,6 +334,21 @@ public class NettyRouter extends AbstractIdleService {
         return pipeline;
       }
     });
+    if (appSslEnabled) {
+      SSLContext clientContext = null;
+      try {
+        clientContext = SSLContext.getInstance("TLS");
+        clientContext.init(null, null, null);
+      } catch (KeyManagementException | NoSuchAlgorithmException e) {
+        e.printStackTrace();
+      }
+      final SSLEngine engine = clientContext.createSSLEngine();
+      engine.setUseClientMode(true);
+      SslHandler sslHandler = new SslHandler(engine);
+      sslHandler.setIssueHandshake(true);
+      clientBootstrap.getPipeline().addLast("ssl", sslHandler);
+      LOG.info("Client is ssl enabled.");
+    }
 
     clientBootstrap.setOption("bufferFactory", new DirectChannelBufferFactory());
   }

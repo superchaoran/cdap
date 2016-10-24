@@ -750,11 +750,21 @@ public final class Constants {
       /** Enables SSL for app fabric server. */
       public static final String SSL_ENABLED = "app.ssl.enabled";
       /** Password for the java keystore. */
-      public static final String SSL_FILE_KEYSTORE_PATH = "app.ssl.keystore.path";
-      /** Password for the java keystore. */
-      public static final String SSL_KEYSTORE_PASSWORD = "app.ssl.password";
-      /** Type for the java keystore. */
+      public static final String SSL_KEYSTORE_PASSWORD = "app.ssl.keystore.password";
+      /** Type for the java keystore. e.g. JCEKS. */
       public static final String SSL_KEYSTORE_TYPE = "app.ssl.keystore.type";
+      /** Algorithm used to generate key pair used in SSL certificate generation. */
+      public static final String KEY_PAIR_ALGORITHM = "app.ssl.key.pair.algorithm";
+      /** Algorithm used for generating the random number used for SSL certificate. */
+      public static final String SECURE_RANDOM_ALGORITHM = "app.ssl.random.algorithm";
+      /** Provider for the secure random number generator. */
+      public static final String SECURE_RANDOM_PROVIDER = "app.ssl.random.provider";
+      /** Validity of the generated SSL certificate. */
+      public static final String CERT_VALIDITY = "app.ssl.cert.validity";
+      /** Distinguished name to be used while generating the SSL certificate */
+      public static final String CERT_DISTINGUISHED_NAME = "app.ssl.cert.distinguished.name";
+      /** Algorithm used for self signing the generated certificate. */
+      public static final String SIGNATURE_ALGORITHM = "app.ssl.cert.sign.algorithm";
     }
 
     /**

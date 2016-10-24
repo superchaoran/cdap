@@ -18,6 +18,8 @@ package co.cask.cdap.security.tools;
 
 import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.conf.SConfiguration;
+import com.google.common.base.Strings;
+import org.apache.commons.lang.time.DateUtils;
 import sun.security.x509.AlgorithmId;
 import sun.security.x509.CertificateAlgorithmId;
 import sun.security.x509.CertificateIssuerName;
@@ -38,6 +40,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -48,64 +51,121 @@ import java.security.cert.X509Certificate;
 import java.util.Date;
 
 /**
- * File based keystore for use with SSL.
+ * Utility class with methods for generating a X.509 self signed certificate
+ * and creating a Java key store with a self signed certificate.
  */
 public class GeneratedCertKeyStoreCreator {
+  private static final String KEY_PAIR_ALGORITHM = "RSA";
+  private static final String SECURE_RANDOM_ALGORITHM = "SHA1PRNG";
+  private static final String SECURE_RANDOM_PROVIDER = "SUN";
+  private static final String DISTINGUISHED_NAME = "CN=Test, L=London, C=GB";
+  private static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
+  private static final String SSL_KEYSTORE_TYPE = "JCEKS";
+  private static final String CERT_ALIAS = "cert";
+  private static final int KEY_SIZE = 2048;
+  private static final int VALIDITY = 999;
 
+  /**
+   * Create a Java key store with a stored self-signed certificate.
+   * @return Java keystore which has a self signed X.509 certificate
+   */
   public static KeyStore getSSLKeyStore(SConfiguration sConf) {
-
-    KeyStore ks;
+    KeyStore keyStore;
+    String password = sConf.get(Constants.Security.AppFabric.SSL_KEYSTORE_PASSWORD);
+    if (Strings.isNullOrEmpty(password)) {
+      throw new RuntimeException("SSL is enabled but a password for the keystore file is not set. Please set " +
+                                   "a password in cdap-security.xml using " +
+                                   Constants.Security.AppFabric.SSL_KEYSTORE_PASSWORD);
+    }
     try {
-      String password = sConf.get(Constants.Security.AppFabric.SSL_KEYSTORE_PASSWORD);
-      KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-      SecureRandom random = SecureRandom.getInstance("SHA1PRNG", "SUN");
-      keyGen.initialize(2048, random);
-
-      // generate a keypair
+      String keyPairAlgorithm = sConf.get(Constants.Security.AppFabric.KEY_PAIR_ALGORITHM,
+                                          KEY_PAIR_ALGORITHM);
+      KeyPairGenerator keyGen = KeyPairGenerator.getInstance(keyPairAlgorithm);
+      String randomAlgorithm = sConf.get(Constants.Security.AppFabric.SECURE_RANDOM_ALGORITHM,
+                                         SECURE_RANDOM_ALGORITHM);
+      String randomProvider = sConf.get(Constants.Security.AppFabric.SECURE_RANDOM_PROVIDER,
+                                        SECURE_RANDOM_PROVIDER);
+      SecureRandom random = SecureRandom.getInstance(randomAlgorithm, randomProvider);
+      keyGen.initialize(KEY_SIZE, random);
+      // generate a key pair
       KeyPair pair = keyGen.generateKeyPair();
-      String dn = "CN=Test, L=London, C=GB";
-      X509Certificate cert = getCertificate(dn, pair, 100, "SHA1WithRSA");
+      int validity = sConf.getInt(Constants.Security.AppFabric.CERT_VALIDITY, VALIDITY);
+      String distinguishedName = sConf.get(Constants.Security.AppFabric.CERT_DISTINGUISHED_NAME, DISTINGUISHED_NAME);
+      String signatureAlgo = sConf.get(Constants.Security.AppFabric.SIGNATURE_ALGORITHM, SIGNATURE_ALGORITHM);
+
+      X509Certificate cert = getCertificate(distinguishedName, pair, validity, signatureAlgo);
       InputStream inputStream = new ByteArrayInputStream(cert.getEncoded());
 
-      ks = KeyStore.getInstance(sConf.get(Constants.Security.AppFabric.SSL_KEYSTORE_TYPE));
-      ks.load(inputStream, password.toCharArray());
+
+      keyStore = KeyStore.getInstance(sConf.get(Constants.Security.AppFabric.SSL_KEYSTORE_TYPE, SSL_KEYSTORE_TYPE));
+      keyStore.load(null, password.toCharArray());
+      keyStore.setCertificateEntry(CERT_ALIAS, cert);
     } catch (Throwable e) {
-      throw new RuntimeException("SSL is enabled but the keystore file could not be read. Please verify that the " +
-                                   "keystore file exists and the path is set correctly : "
-                                   + sConf.get(Constants.Security.AppFabric.SSL_FILE_KEYSTORE_PATH));
+      throw new RuntimeException("SSL is enabled but a key store file could not be created. A keystore is required " +
+                                   "for SSL to be used.", e);
     }
-    return ks;
+    return keyStore;
   }
 
-  private static X509Certificate getCertificate(String dn, KeyPair pair, int days, String algorithm)
-    throws CertificateException, IOException, NoSuchProviderException, NoSuchAlgorithmException,
-    InvalidKeyException, SignatureException {
-    PrivateKey privkey = pair.getPrivate();
-    X509CertInfo info = new X509CertInfo();
+  /**
+   * Generate an X.509 certificate
+   * @param dn Distinguished name for the owner of the certificate, it will also be the signer of the certificate.
+   * @param pair Key pair used for signing the certificate.
+   * @param days Validity of the certificate.
+   * @param algorithm Name of the signature algorithm used.
+   * @return A X.509 certificate
+   */
+  private static X509Certificate getCertificate(String dn, KeyPair pair, int days, String algorithm) {
+//    throws CertificateException, IOException, NoSuchProviderException, NoSuchAlgorithmException,
+//    InvalidKeyException, SignatureException {
+    // Calculate the validity interval of the certificate
     Date from = new Date();
-    Date to = new Date(from.getTime() + days * 86400000L);
+    Date to = DateUtils.addDays(from, days);
     CertificateValidity interval = new CertificateValidity(from, to);
+    // Generate a random number to use as the serial number for the certificate
     BigInteger sn = new BigInteger(64, new SecureRandom());
-    X500Name owner = new X500Name(dn);
-
-    info.set(X509CertInfo.VALIDITY, interval);
-    info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(sn));
-    info.set(X509CertInfo.SUBJECT, new CertificateSubjectName(owner));
-    info.set(X509CertInfo.ISSUER, new CertificateIssuerName(owner));
-    info.set(X509CertInfo.KEY, new CertificateX509Key(pair.getPublic()));
-    info.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3));
-    AlgorithmId algo = new AlgorithmId(AlgorithmId.md5WithRSAEncryption_oid);
-    info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algo));
-
-    // Sign the cert to identify the algorithm that's used.
-    X509CertImpl cert = new X509CertImpl(info);
-    cert.sign(privkey, algorithm);
-
-    // Update the algorith, and resign.
-    algo = (AlgorithmId) cert.get(X509CertImpl.SIG_ALG);
-    info.set(CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, algo);
-    cert = new X509CertImpl(info);
-    cert.sign(privkey, algorithm);
+    X509CertInfo info = null;
+    X509CertImpl cert = null;
+    // Create the name of the owner based on the provided distinguished name
+    try {
+      X500Name owner = new X500Name(dn);
+      // Create an info objects with the provided information, which will be used to create the certificate
+      info = new X509CertInfo();
+      info.set(X509CertInfo.VALIDITY, interval);
+      info.set(X509CertInfo.SERIAL_NUMBER, new CertificateSerialNumber(sn));
+      // This certificate will be self signed, hence the subject and the issuer are same.
+      info.set(X509CertInfo.SUBJECT, new CertificateSubjectName(owner));
+      info.set(X509CertInfo.ISSUER, new CertificateIssuerName(owner));
+      info.set(X509CertInfo.KEY, new CertificateX509Key(pair.getPublic()));
+      info.set(X509CertInfo.VERSION, new CertificateVersion(CertificateVersion.V3));
+      AlgorithmId algo = new AlgorithmId(AlgorithmId.md5WithRSAEncryption_oid);
+      info.set(X509CertInfo.ALGORITHM_ID, new CertificateAlgorithmId(algo));
+      // Create the certificate and sign it with the private key
+      cert = new X509CertImpl(info);
+      PrivateKey privateKey = pair.getPrivate();
+      cert.sign(privateKey, algorithm);
+    } catch (CertificateException | IOException | NoSuchAlgorithmException | SignatureException
+      | InvalidKeyException | NoSuchProviderException e) {
+      throw new RuntimeException("SSL is enabled but an certificate could not be generated. A certificate is required" +
+                                   " for SSL to be used.", e);
+    }
     return cert;
+  }
+
+  public static void main(String[] args) throws KeyStoreException, NoSuchProviderException, CertificateException,
+    NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    SConfiguration sConfiguration = SConfiguration.create();
+    sConfiguration.set(Constants.Security.AppFabric.SSL_KEYSTORE_PASSWORD, "pass");
+    KeyStore ks = getSSLKeyStore(sConfiguration);
+//    ks.getCertificate("cert").verify(pair.getPublic());
+    System.out.println("All good");
+
+    KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_PAIR_ALGORITHM);
+    SecureRandom random = SecureRandom.getInstance(SECURE_RANDOM_ALGORITHM, SECURE_RANDOM_PROVIDER);
+    keyGen.initialize(KEY_SIZE, random);
+    // generate a key pair
+    KeyPair pair2 = keyGen.generateKeyPair();
+    ks.getCertificate("cert").verify(pair2.getPublic());
+    System.out.println("Fuck this");
   }
 }

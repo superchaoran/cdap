@@ -267,6 +267,14 @@
   </property>
 
   <property>
+    <name>app.bind.port</name>
+    <value>20443</value>
+    <description>
+      App Fabric service bind port
+    </description>
+  </property>
+
+  <property>
     <name>app.output.dir</name>
     <value>/programs</value>
     <description>

@@ -16,10 +16,13 @@
 
 package co.cask.cdap.internal.app.services;
 
+import co.cask.cdap.common.conf.CConfiguration;
 import co.cask.cdap.common.conf.Constants;
+import co.cask.cdap.common.conf.SConfiguration;
 import co.cask.cdap.internal.AppFabricTestHelper;
 import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Service;
+import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import org.apache.twill.discovery.DiscoveryServiceClient;
 import org.apache.twill.discovery.ServiceDiscovered;
@@ -57,5 +60,25 @@ public class AppFabricServerTest {
 
     TimeUnit.SECONDS.sleep(1);
     Assert.assertTrue(Iterables.isEmpty(discovered));
+  }
+
+  @Test
+  public void testSSL() {
+    CConfiguration cConf = CConfiguration.create();
+    cConf.setBoolean(Constants.Security.AppFabric.SSL_ENABLED, true);
+    cConf.setInt(Constants.AppFabric.SERVER_SSL_PORT, 20443);
+    SConfiguration sConf = SConfiguration.create();
+    sConf.set(Constants.Security.AppFabric.SSL_KEYSTORE_PASSWORD, "secret");
+    final Injector injector = AppFabricTestHelper.getInjector(cConf, sConf, new AbstractModule() {
+      @Override
+      protected void configure() {
+        // no overrides
+      }
+    });
+
+    discoveryServiceClient = injector.getInstance(DiscoveryServiceClient.class);
+    AppFabricServer appFabricServer = injector.getInstance(AppFabricServer.class);
+    appFabricServer.startAndWait();
+    Assert.assertTrue(appFabricServer.isRunning());
   }
 }

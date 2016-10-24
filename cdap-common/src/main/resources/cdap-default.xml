@@ -267,8 +267,8 @@
   </property>
 
   <property>
-    <name>app.bind.port</name>
-    <value>20443</value>
+    <name>app.ssl.bind.port</name>
+    <value>30443</value>
     <description>
       App Fabric service bind port
     </description>

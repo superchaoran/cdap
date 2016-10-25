@@ -65,7 +65,7 @@ public class SetRouteConfigCommand extends AbstractAuthCommand {
 
   @Override
   public String getPattern() {
-    return String.format("get endpoints service <%s>", ArgumentName.SERVICE);
+    return String.format("set routeconfig service <%s>", ArgumentName.SERVICE);
   }
 
   @Override

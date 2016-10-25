@@ -260,7 +260,7 @@
 
   <property>
     <name>app.ssl.enabled</name>
-    <value>true</value>
+    <value>false</value>
     <description>
       Enable SSL between Router and App Fabric
     </description>

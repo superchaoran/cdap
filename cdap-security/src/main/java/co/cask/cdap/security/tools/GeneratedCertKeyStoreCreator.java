@@ -33,9 +33,13 @@ import sun.security.x509.X509CertImpl;
 import sun.security.x509.X509CertInfo;
 
 import java.io.ByteArrayInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -49,6 +53,7 @@ import java.security.SignatureException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.Enumeration;
 
 /**
  * Utility class with methods for generating a X.509 self signed certificate
@@ -59,8 +64,8 @@ public class GeneratedCertKeyStoreCreator {
   private static final String SECURE_RANDOM_ALGORITHM = "SHA1PRNG";
   private static final String SECURE_RANDOM_PROVIDER = "SUN";
   private static final String DISTINGUISHED_NAME = "CN=Test, L=London, C=GB";
-  private static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
-  private static final String SSL_KEYSTORE_TYPE = "JCEKS";
+  private static final String SIGNATURE_ALGORITHM = "MD5withRSA";
+  private static final String SSL_KEYSTORE_TYPE = "JKS";
   private static final String CERT_ALIAS = "cert";
   private static final int KEY_SIZE = 2048;
   private static final int VALIDITY = 999;
@@ -153,19 +158,21 @@ public class GeneratedCertKeyStoreCreator {
   }
 
   public static void main(String[] args) throws KeyStoreException, NoSuchProviderException, CertificateException,
-    NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    NoSuchAlgorithmException, InvalidKeyException, SignatureException, IOException {
     SConfiguration sConfiguration = SConfiguration.create();
     sConfiguration.set(Constants.Security.AppFabric.SSL_KEYSTORE_PASSWORD, "pass");
     KeyStore ks = getSSLKeyStore(sConfiguration);
-//    ks.getCertificate("cert").verify(pair.getPublic());
     System.out.println("All good");
+    Enumeration<String> aliases = ks.aliases();
+    while (aliases.hasMoreElements()) {
+      String alias = aliases.nextElement();
+      System.out.println(alias);
+      System.out.println(ks.getCertificate(alias));
+    }
 
-    KeyPairGenerator keyGen = KeyPairGenerator.getInstance(KEY_PAIR_ALGORITHM);
-    SecureRandom random = SecureRandom.getInstance(SECURE_RANDOM_ALGORITHM, SECURE_RANDOM_PROVIDER);
-    keyGen.initialize(KEY_SIZE, random);
-    // generate a key pair
-    KeyPair pair2 = keyGen.generateKeyPair();
-    ks.getCertificate("cert").verify(pair2.getPublic());
-    System.out.println("Fuck this");
+    OutputStream fos = new DataOutputStream(Files.newOutputStream(Paths.get("/tmp/test.jks")));
+    ks.store(fos, "pass".toCharArray());
+    fos.flush();
+    fos.close();
   }
 }

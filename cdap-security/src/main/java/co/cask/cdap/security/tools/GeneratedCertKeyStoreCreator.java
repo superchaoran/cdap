@@ -104,7 +104,8 @@ public class GeneratedCertKeyStoreCreator {
 
       keyStore = KeyStore.getInstance(sConf.get(Constants.Security.AppFabric.SSL_KEYSTORE_TYPE, SSL_KEYSTORE_TYPE));
       keyStore.load(null, password.toCharArray());
-      keyStore.setCertificateEntry(CERT_ALIAS, cert);
+      keyStore.setKeyEntry(CERT_ALIAS, pair.getPrivate(), password.toCharArray(),
+                           new java.security.cert.Certificate[]{cert});
     } catch (Throwable e) {
       throw new RuntimeException("SSL is enabled but a key store file could not be created. A keystore is required " +
                                    "for SSL to be used.", e);

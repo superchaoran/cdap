@@ -38,7 +38,6 @@ public class GeneratedCertKeyStoreCreatorTest {
     KeyStore ks = GeneratedCertKeyStoreCreator.getSSLKeyStore(sConfiguration);
     Assert.assertEquals(SSL_KEYSTORE_TYPE, ks.getType());
     Assert.assertEquals(CERT_ALIAS, ks.aliases().nextElement());
-    Assert.assertTrue(ks.isCertificateEntry(CERT_ALIAS));
     Assert.assertEquals(1, ks.size());
     Assert.assertTrue(ks.getCertificate(CERT_ALIAS) instanceof X509Certificate);
 

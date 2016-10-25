@@ -334,21 +334,6 @@ public class NettyRouter extends AbstractIdleService {
         return pipeline;
       }
     });
-    if (appSslEnabled) {
-      SSLContext clientContext = null;
-      try {
-        clientContext = SSLContext.getInstance("TLS");
-        clientContext.init(null, null, null);
-      } catch (KeyManagementException | NoSuchAlgorithmException e) {
-        e.printStackTrace();
-      }
-      final SSLEngine engine = clientContext.createSSLEngine();
-      engine.setUseClientMode(true);
-      SslHandler sslHandler = new SslHandler(engine);
-      sslHandler.setIssueHandshake(true);
-      clientBootstrap.getPipeline().addLast("ssl", sslHandler);
-      LOG.info("Client is ssl enabled.");
-    }
 
     clientBootstrap.setOption("bufferFactory", new DirectChannelBufferFactory());
   }

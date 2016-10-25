@@ -195,7 +195,6 @@ public class AppFabricServer extends AbstractIdleService {
         public ChannelPipeline apply(ChannelPipeline input) {
           LOG.info("Adding ssl handler to the pipeline.");
           SslHandler sslHandler = sslHandlerFactory.create();
-          sslHandler.getEngine().setNeedClientAuth(true);
           sslHandler.setIssueHandshake(true);
           input.addFirst("ssl", sslHandler);
           return input;

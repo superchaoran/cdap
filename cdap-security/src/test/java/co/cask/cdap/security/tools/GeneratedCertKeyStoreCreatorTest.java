@@ -27,8 +27,8 @@ import java.security.cert.X509Certificate;
 public class GeneratedCertKeyStoreCreatorTest {
   private static final String CERT_ALIAS = "cert";
   private static final String DISTINGUISHED_NAME = "CN=Test, L=London, C=GB";
-  private static final String SIGNATURE_ALGORITHM = "SHA1withRSA";
-  private static final String SSL_KEYSTORE_TYPE = "JCEKS";
+  private static final String SIGNATURE_ALGORITHM = "MD5withRSA";
+  private static final String SSL_KEYSTORE_TYPE = "JKS";
   private static final String CERTIFICATE_TYPE = "X.509";
 
   @Test

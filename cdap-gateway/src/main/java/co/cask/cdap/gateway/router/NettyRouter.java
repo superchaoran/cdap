@@ -26,6 +26,7 @@ import co.cask.cdap.gateway.router.handlers.IdleEventProcessor;
 import co.cask.cdap.gateway.router.handlers.SecurityAuthenticationHttpHandler;
 import co.cask.cdap.security.auth.AccessTokenTransformer;
 import co.cask.cdap.security.auth.TokenValidator;
+import co.cask.cdap.security.tools.PermissiveTrustManagerFactory;
 import co.cask.cdap.security.tools.SSLHandlerFactory;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -131,7 +132,7 @@ public class NettyRouter extends AbstractIdleService {
     this.discoveryServiceClient = discoveryServiceClient;
     this.configuration = cConf;
     this.sslEnabled = cConf.getBoolean(Constants.Security.SSL_ENABLED);
-    this.appSslEnabled = cConf.getBoolean(Constants.Security.SSL_ENABLED);
+    this.appSslEnabled = cConf.getBoolean(Constants.Security.AppFabric.SSL_ENABLED);
     boolean webAppEnabled = cConf.getBoolean(Constants.Router.WEBAPP_ENABLED);
     if (isSSLEnabled()) {
       this.serviceToPortMap.put(Constants.Router.GATEWAY_DISCOVERY_NAME,
@@ -319,6 +320,18 @@ public class NettyRouter extends AbstractIdleService {
         new NioClientBossPool(clientBossExecutor, clientBossThreadPoolSize),
         new NioWorkerPool(clientWorkerExecutor, clientWorkerThreadPoolSize)));
 
+    SSLEngine engine = null;
+    if (appSslEnabled) {
+      SSLContext clientContext = null;
+      try {
+        clientContext = SSLContext.getInstance("TLS");
+        clientContext.init(null, PermissiveTrustManagerFactory.getTrustManagers(), null);
+      } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        e.printStackTrace();
+      }
+      engine = clientContext.createSSLEngine();
+      engine.setUseClientMode(true);
+    }
     clientBootstrap.setPipelineFactory(new ChannelPipelineFactory() {
       @Override
       public ChannelPipeline getPipeline() throws Exception {
@@ -335,6 +348,9 @@ public class NettyRouter extends AbstractIdleService {
       }
     });
 
+    if (appSslEnabled) {
+      clientBootstrap.getPipeline().addFirst("ssl", new SslHandler(engine));
+    }
     clientBootstrap.setOption("bufferFactory", new DirectChannelBufferFactory());
   }
 

@@ -80,5 +80,6 @@ public class AppFabricServerTest {
     AppFabricServer appFabricServer = injector.getInstance(AppFabricServer.class);
     appFabricServer.startAndWait();
     Assert.assertTrue(appFabricServer.isRunning());
+    appFabricServer.stopAndWait();
   }
 }

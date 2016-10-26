@@ -24,6 +24,7 @@ import co.cask.cdap.cli.ElementType;
 import co.cask.cdap.cli.english.Article;
 import co.cask.cdap.cli.english.Fragment;
 import co.cask.cdap.cli.util.AbstractAuthCommand;
+import co.cask.cdap.cli.util.ArgumentParser;
 import co.cask.cdap.cli.util.RowMaker;
 import co.cask.cdap.cli.util.table.Table;
 import co.cask.cdap.client.ServiceClient;
@@ -34,6 +35,7 @@ import com.google.inject.Inject;
 
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Sets RouteConfig for a service.
@@ -50,27 +52,21 @@ public class SetRouteConfigCommand extends AbstractAuthCommand {
   @Override
   public void perform(Arguments arguments, PrintStream output) throws Exception {
     ServiceId serviceId = parseServiceId(arguments);
-    List<ServiceHttpEndpoint> endpoints = serviceClient.getEndpoints(serviceId);
-
-    Table table = Table.builder()
-      .setHeader("method", "path")
-      .setRows(endpoints, new RowMaker<ServiceHttpEndpoint>() {
-        @Override
-        public List<?> makeRow(ServiceHttpEndpoint endpoint) {
-          return Lists.newArrayList(endpoint.getMethod(), endpoint.getPath());
-        }
-      }).build();
-    cliConfig.getTableRenderer().render(cliConfig, output, table);
+    String routeConfigString = arguments.get(ArgumentName.ROUTE_CONFIG.name());
+    Map<String, Integer> routeConfig = ArgumentParser.parseRouteConfigMap(routeConfigString);
+    serviceClient.storeRouteConfig(cliConfig.getCurrentNamespace(), serviceId.getApplication(), serviceId.getProgram(),
+                                   routeConfig);
   }
 
   @Override
   public String getPattern() {
-    return String.format("set routeconfig service <%s>", ArgumentName.SERVICE);
+    return String.format("set routeconfig service <%s> <%s>", ArgumentName.SERVICE, ArgumentName.ROUTE_CONFIG);
   }
 
   @Override
   public String getDescription() {
-    return String.format("Lists the endpoints that %s exposes",
-                         Fragment.of(Article.A, ElementType.SERVICE.getName()));
+    return String.format("Set the route configuration for %s. '<%s>' is specified in the format " +
+                           "'version1:number1 version2:number2'.",
+                         Fragment.of(Article.A, ElementType.SERVICE.getName()), ArgumentName.ROUTE_CONFIG);
   }
 }

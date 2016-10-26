@@ -61,6 +61,30 @@ public class ArgumentParser {
   }
 
   /**
+   * Parses a map in the format: "key1:a key2:b .."
+   *
+   * @param mapString {@link String} representation of the map
+   * @return the map
+   */
+  public static Map<String, Integer> parseRouteConfigMap(String mapString) {
+    if (mapString == null || mapString.isEmpty()) {
+      return ImmutableMap.of();
+    }
+
+    ImmutableMap.Builder<String, Integer> result = ImmutableMap.builder();
+    List<String> tokens = Parser.parseInput(mapString);
+    for (String token : tokens) {
+      int firstEquals = token.indexOf(':');
+      if (firstEquals > 0) {
+        String key = token.substring(0, firstEquals);
+        String value = token.substring(firstEquals + 1, token.length());
+        result.put(extractValue(key), Integer.valueOf(extractValue(value)));
+      }
+    }
+    return result.build();
+  }
+
+  /**
    * @param value string that may be surrounded by quotes
    * @return unquoted string if quoted, otherwise the original string
    */

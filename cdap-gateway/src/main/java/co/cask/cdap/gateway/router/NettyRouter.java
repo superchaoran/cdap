@@ -88,6 +88,7 @@ public class NettyRouter extends AbstractIdleService {
   private static final Logger LOG = LoggerFactory.getLogger(NettyRouter.class);
   private static final int CLOSE_CHANNEL_TIMEOUT_SECS = 10;
 
+  private final CConfiguration cConf;
   private final int serverBossThreadPoolSize;
   private final int serverWorkerThreadPoolSize;
   private final int serverConnectionBacklog;
@@ -103,7 +104,6 @@ public class NettyRouter extends AbstractIdleService {
   private final CConfiguration configuration;
   private final String realm;
   private final boolean sslEnabled;
-  private final boolean appSslEnabled;
   private final SSLHandlerFactory sslHandlerFactory;
   private final int connectionTimeout;
 
@@ -117,6 +117,7 @@ public class NettyRouter extends AbstractIdleService {
                      RouterServiceLookup serviceLookup, TokenValidator tokenValidator,
                      AccessTokenTransformer accessTokenTransformer,
                      DiscoveryServiceClient discoveryServiceClient) {
+    this.cConf = cConf;
     this.serverBossThreadPoolSize = cConf.getInt(Constants.Router.SERVER_BOSS_THREADS);
     this.serverWorkerThreadPoolSize = cConf.getInt(Constants.Router.SERVER_WORKER_THREADS);
     this.serverConnectionBacklog = cConf.getInt(Constants.Router.BACKLOG_CONNECTIONS);
@@ -132,7 +133,6 @@ public class NettyRouter extends AbstractIdleService {
     this.discoveryServiceClient = discoveryServiceClient;
     this.configuration = cConf;
     this.sslEnabled = cConf.getBoolean(Constants.Security.SSL_ENABLED);
-    this.appSslEnabled = cConf.getBoolean(Constants.Security.AppFabric.SSL_ENABLED);
     boolean webAppEnabled = cConf.getBoolean(Constants.Router.WEBAPP_ENABLED);
     if (isSSLEnabled()) {
       this.serviceToPortMap.put(Constants.Router.GATEWAY_DISCOVERY_NAME,
@@ -320,37 +320,9 @@ public class NettyRouter extends AbstractIdleService {
         new NioClientBossPool(clientBossExecutor, clientBossThreadPoolSize),
         new NioWorkerPool(clientWorkerExecutor, clientWorkerThreadPoolSize)));
 
-    SSLEngine engine = null;
-    if (appSslEnabled) {
-      SSLContext clientContext = null;
-      try {
-        clientContext = SSLContext.getInstance("TLS");
-        clientContext.init(null, PermissiveTrustManagerFactory.getTrustManagers(), null);
-      } catch (NoSuchAlgorithmException | KeyManagementException e) {
-        e.printStackTrace();
-      }
-      engine = clientContext.createSSLEngine();
-      engine.setUseClientMode(true);
-    }
-    clientBootstrap.setPipelineFactory(new ChannelPipelineFactory() {
-      @Override
-      public ChannelPipeline getPipeline() throws Exception {
-        ChannelPipeline pipeline = Channels.pipeline();
-        pipeline.addLast("tracker", connectionTracker);
-        pipeline.addLast("request-encoder", new HttpRequestEncoder());
-        // outbound handler gets dynamically added here (after 'request-encoder')
-        pipeline.addLast("response-decoder", new HttpResponseDecoder());
-        // disable the read-specific and write-specific timeouts; we only utilize IdleState#ALL_IDLE
-        pipeline.addLast("idle-event-generator",
-                         new IdleStateHandler(timer, 0, 0, connectionTimeout));
-        pipeline.addLast("idle-event-processor", new IdleEventProcessor());
-        return pipeline;
-      }
-    });
-
-    if (appSslEnabled) {
-      clientBootstrap.getPipeline().addFirst("ssl", new SslHandler(engine));
-    }
+    ChannelPipelineFactory pipelineFactory = new ClientChannelPipelineFactory(cConf, connectionTracker,
+                                                                              connectionTimeout, timer);
+    clientBootstrap.setPipelineFactory(pipelineFactory);
     clientBootstrap.setOption("bufferFactory", new DirectChannelBufferFactory());
   }
 

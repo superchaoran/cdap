@@ -22,10 +22,10 @@ import co.cask.cdap.cli.ElementType;
 import co.cask.cdap.cli.english.Article;
 import co.cask.cdap.cli.english.Fragment;
 import co.cask.cdap.cli.util.AbstractAuthCommand;
-import co.cask.cdap.cli.util.ArgumentParser;
 import co.cask.cdap.client.ServiceClient;
 import co.cask.cdap.proto.id.ServiceId;
 import co.cask.common.cli.Arguments;
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 
 import java.io.PrintStream;
@@ -34,11 +34,13 @@ import java.util.Map;
 /**
  * Sets RouteConfig for a service.
  */
-public class SetRouteConfigCommand extends AbstractAuthCommand {
+public class GetRouteConfigCommand extends AbstractAuthCommand {
+
+  private static final Gson GSON = new Gson();
   private final ServiceClient serviceClient;
 
   @Inject
-  public SetRouteConfigCommand(ServiceClient serviceClient, CLIConfig cliConfig) {
+  public GetRouteConfigCommand(ServiceClient serviceClient, CLIConfig cliConfig) {
     super(cliConfig);
     this.serviceClient = serviceClient;
   }
@@ -46,21 +48,18 @@ public class SetRouteConfigCommand extends AbstractAuthCommand {
   @Override
   public void perform(Arguments arguments, PrintStream output) throws Exception {
     ServiceId serviceId = parseServiceId(arguments);
-    String routeConfigString = arguments.get(ArgumentName.ROUTE_CONFIG.name());
-    Map<String, Integer> routeConfig = ArgumentParser.parseRouteConfigMap(routeConfigString);
-    serviceClient.storeRouteConfig(serviceId.getNamespaceId(), serviceId.getApplication(), serviceId.getProgram(),
-                                   routeConfig);
+    Map<String, Integer> routeConfig = serviceClient.getRouteConfig(serviceId.getNamespaceId(),
+                                                                    serviceId.getApplication(), serviceId.getProgram());
+    output.printf(GSON.toJson(routeConfig));
   }
 
   @Override
   public String getPattern() {
-    return String.format("set routeconfig service <%s> <%s>", ArgumentName.SERVICE, ArgumentName.ROUTE_CONFIG);
+    return String.format("get routeconfig service <%s>", ArgumentName.SERVICE);
   }
 
   @Override
   public String getDescription() {
-    return String.format("Set the route configuration for %s. '<%s>' is specified in the format " +
-                           "'version1:number1 version2:number2'.",
-                         Fragment.of(Article.A, ElementType.SERVICE.getName()), ArgumentName.ROUTE_CONFIG);
+    return String.format("Get the route configuration for %s.", Fragment.of(Article.A, ElementType.SERVICE.getName()));
   }
 }

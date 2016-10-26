@@ -18,6 +18,8 @@ package co.cask.cdap.cli.commandset;
 
 import co.cask.cdap.cli.command.CallServiceCommand;
 import co.cask.cdap.cli.command.CheckServiceAvailabilityCommand;
+import co.cask.cdap.cli.command.DeleteRouteConfigCommand;
+import co.cask.cdap.cli.command.GetRouteConfigCommand;
 import co.cask.cdap.cli.command.GetServiceEndpointsCommand;
 import co.cask.cdap.cli.command.SetRouteConfigCommand;
 import co.cask.common.cli.Command;
@@ -39,6 +41,8 @@ public class ServiceCommands extends CommandSet<Command> {
         .add(injector.getInstance(GetServiceEndpointsCommand.class))
         .add(injector.getInstance(CheckServiceAvailabilityCommand.class))
         .add(injector.getInstance(SetRouteConfigCommand.class))
+        .add(injector.getInstance(GetRouteConfigCommand.class))
+        .add(injector.getInstance(DeleteRouteConfigCommand.class))
         .build());
   }
 }

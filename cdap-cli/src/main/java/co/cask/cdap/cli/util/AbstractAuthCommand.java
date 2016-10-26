@@ -41,6 +41,10 @@ import java.util.Set;
  */
 public abstract class AbstractAuthCommand implements Command {
 
+  protected static final int APP_IDX = 0;
+  protected static final int VERSION_IDX = 1;
+  protected static final int PROGRAM_IDX = 2;
+
   private static Joiner dotJoiner = Joiner.on(".");
   protected final CLIConfig cliConfig;
 
@@ -72,29 +76,38 @@ public abstract class AbstractAuthCommand implements Command {
   public abstract void perform(Arguments arguments, PrintStream printStream) throws Exception;
 
   protected ServiceId parseServiceId(Arguments arguments) {
-    String[] appVersionServiceId = arguments.get(ArgumentName.SERVICE.toString()).split("\\.");
-    if (appVersionServiceId.length < 2) {
-      throw new CommandInputError(this);
+    String[] idParts = parseProgramIdArgument(arguments, ArgumentName.SERVICE.getName());
+    if (idParts[VERSION_IDX] == null) {
+      idParts[VERSION_IDX] =  ApplicationId.DEFAULT_VERSION;
     }
+    return cliConfig.getCurrentNamespace().app(idParts[APP_IDX], idParts[VERSION_IDX]).service(idParts[PROGRAM_IDX]);
+  }
 
-    String appId = appVersionServiceId[0];
-    String serviceId = appVersionServiceId[appVersionServiceId.length - 1];
-    String appVersion = appVersionServiceId.length == 2 ? ApplicationId.DEFAULT_VERSION :
-      dotJoiner.join(Arrays.copyOfRange(appVersionServiceId, 1, appVersionServiceId.length - 1));
-    return cliConfig.getCurrentNamespace().app(appId, appVersion).service(serviceId);
+  protected ServiceId parseNonversionServiceId(Arguments arguments) {
+    String[] idParts = parseProgramIdArgument(arguments, ArgumentName.NON_VERSION_SERVICE.getName());
+    return cliConfig.getCurrentNamespace().app(idParts[APP_IDX]).service(idParts[PROGRAM_IDX]);
   }
 
   protected ProgramId parseProgramId(Arguments arguments, ElementType elementType) {
-    String[] programIdParts = arguments.get(elementType.getArgumentName().toString()).split("\\.");
-    if (programIdParts.length < 2) {
+    String[] idParts = parseProgramIdArgument(arguments, elementType.getArgumentName().getName());
+    if (idParts[VERSION_IDX] == null) {
+      idParts[VERSION_IDX] =  ApplicationId.DEFAULT_VERSION;
+    }
+    return cliConfig.getCurrentNamespace().app(idParts[APP_IDX], idParts[VERSION_IDX])
+      .program(elementType.getProgramType(), idParts[PROGRAM_IDX]);
+  }
+
+  protected String[] parseProgramIdArgument(Arguments arguments, String argumentName) {
+    String[] argumentParts = arguments.get(argumentName).split("\\.");
+    if (argumentParts.length < 2) {
       throw new CommandInputError(this);
     }
 
-    String appId = programIdParts[0];
-    String programName = programIdParts[programIdParts.length - 1];
-    String appVersion = programIdParts.length == 2 ? ApplicationId.DEFAULT_VERSION :
-      dotJoiner.join(Arrays.copyOfRange(programIdParts, 1, programIdParts.length - 1));
-    return cliConfig.getCurrentNamespace().app(appId, appVersion).program(elementType.getProgramType(), programName);
+    String appName = argumentParts[0];
+    String programName = argumentParts[argumentParts.length - 1];
+    String appVersion = argumentParts.length == 2 ? null :
+      dotJoiner.join(Arrays.copyOfRange(argumentParts, 1, argumentParts.length - 1));
+    return new String[] {appName, appVersion, programName};
   }
 
   protected ApplicationId parseApplicationId(Arguments arguments) {

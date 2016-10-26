@@ -30,6 +30,8 @@ import co.cask.cdap.cli.util.FilePathResolver;
 import co.cask.cdap.client.ServiceClient;
 import co.cask.cdap.client.config.ClientConfig;
 import co.cask.cdap.client.util.RESTClient;
+import co.cask.cdap.proto.Id;
+import co.cask.cdap.proto.id.ApplicationId;
 import co.cask.cdap.proto.id.ServiceId;
 import co.cask.common.cli.Arguments;
 import co.cask.common.http.HttpMethod;
@@ -69,7 +71,7 @@ public class CallServiceCommand extends AbstractCommand implements Categorized {
 
   @Override
   public void perform(Arguments arguments, PrintStream output) throws Exception {
-    ServiceId service = parseServiceId(arguments);
+
 
     String method = arguments.get(ArgumentName.HTTP_METHOD.toString());
     String path = arguments.get(ArgumentName.ENDPOINT.toString());
@@ -87,7 +89,17 @@ public class CallServiceCommand extends AbstractCommand implements Categorized {
     }
 
     Map<String, String> headerMap = GSON.fromJson(headers, new TypeToken<Map<String, String>>() { }.getType());
-    URL url = new URL(serviceClient.getServiceURL(service), path);
+    String[] idParts = parseProgramIdArgument(arguments, ArgumentName.SERVICE.getName());
+    URL url;
+    if (idParts[VERSION_IDX] == null) {
+      Id.Service service = Id.Service.from(cliConfig.getCurrentNamespace().toId(),
+                                           idParts[APP_IDX], idParts[PROGRAM_IDX]);
+      url = new URL(serviceClient.getServiceURL(service), path);
+    } else {
+      ServiceId service = new ApplicationId(cliConfig.getCurrentNamespace().getNamespace(), idParts[APP_IDX],
+                                            idParts[VERSION_IDX]).service(idParts[PROGRAM_IDX]);
+      url = new URL(serviceClient.getServiceURL(service), path);
+    }
 
     HttpMethod httpMethod = HttpMethod.valueOf(method);
     HttpRequest.Builder builder = HttpRequest.builder(httpMethod, url).addHeaders(headerMap);

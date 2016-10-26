@@ -61,12 +61,12 @@ public class ArgumentParser {
   }
 
   /**
-   * Parses a map in the format: "key1:a key2:b .."
+   * Parses a map in the format: "key1=a key2=b .."
    *
    * @param mapString {@link String} representation of the map
    * @return the map
    */
-  public static Map<String, Integer> parseRouteConfigMap(String mapString) {
+  public static Map<String, Integer> parseStringIntegerMap(String mapString) {
     if (mapString == null || mapString.isEmpty()) {
       return ImmutableMap.of();
     }
@@ -74,7 +74,7 @@ public class ArgumentParser {
     ImmutableMap.Builder<String, Integer> result = ImmutableMap.builder();
     List<String> tokens = Parser.parseInput(mapString);
     for (String token : tokens) {
-      int firstEquals = token.indexOf(':');
+      int firstEquals = token.indexOf('=');
       if (firstEquals > 0) {
         String key = token.substring(0, firstEquals);
         String value = token.substring(firstEquals + 1, token.length());

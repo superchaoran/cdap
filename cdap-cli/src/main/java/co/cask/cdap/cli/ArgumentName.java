@@ -28,6 +28,7 @@ public enum ArgumentName {
   FLOWLET("app-id.flow-id.flowlet-id"),
   WORKFLOW("app-id.workflow-id"),
   SERVICE("app-id.[app-version.]service-id"),
+  NON_VERSION_SERVICE("app-id.service-id"),
   MAPREDUCE("app-id.mapreduce-id"),
   SPARK("app-id.spark-id"),
 

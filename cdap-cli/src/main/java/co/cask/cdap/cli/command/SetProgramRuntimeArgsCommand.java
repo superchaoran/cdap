@@ -36,8 +36,6 @@ import java.util.Map;
  */
 public class SetProgramRuntimeArgsCommand extends AbstractAuthCommand {
 
-  private static final Gson GSON = new Gson();
-
   private final ProgramClient programClient;
   private final ElementType elementType;
 
@@ -56,7 +54,7 @@ public class SetProgramRuntimeArgsCommand extends AbstractAuthCommand {
     String runtimeArgsString = arguments.get(ArgumentName.RUNTIME_ARGS.toString());
     Map<String, String> runtimeArgs = ArgumentParser.parseMap(runtimeArgsString);
     programClient.setRuntimeArgs(programId, runtimeArgs);
-    output.printf("Successfully set runtime args of %s '%s.%s' of application '%s' to '%s'\n",
+    output.printf("Successfully set runtime args of %s '%s' of application '%s.%s' to '%s'\n",
                   elementType.getName(), programName, appName, appVersion, runtimeArgsString);
   }
 

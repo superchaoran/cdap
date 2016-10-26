@@ -45,7 +45,11 @@ public class DeleteRouteConfigCommand extends AbstractAuthCommand {
   @Override
   public void perform(Arguments arguments, PrintStream output) throws Exception {
     ServiceId serviceId = parseServiceId(arguments);
+    String appName = serviceId.getApplication();
+    String serviceName = serviceId.getProgram();
     serviceClient.deleteRouteConfig(serviceId.getNamespaceId(), serviceId.getApplication(), serviceId.getProgram());
+    output.printf("Successfully delete route configuration of %s '%s' of application '%s'\n",
+                  ElementType.SERVICE.getName(), serviceName, appName);
   }
 
   @Override

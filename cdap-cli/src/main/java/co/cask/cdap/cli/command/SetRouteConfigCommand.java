@@ -45,22 +45,26 @@ public class SetRouteConfigCommand extends AbstractAuthCommand {
 
   @Override
   public void perform(Arguments arguments, PrintStream output) throws Exception {
-    ServiceId serviceId = parseServiceId(arguments);
-    String routeConfigString = arguments.get(ArgumentName.ROUTE_CONFIG.name());
-    Map<String, Integer> routeConfig = ArgumentParser.parseRouteConfigMap(routeConfigString);
-    serviceClient.storeRouteConfig(serviceId.getNamespaceId(), serviceId.getApplication(), serviceId.getProgram(),
-                                   routeConfig);
+    ServiceId serviceId = parseNonversionServiceId(arguments);
+    String appName = serviceId.getApplication();
+    String serviceName = serviceId.getProgram();
+    String routeConfigString = arguments.get(ArgumentName.ROUTE_CONFIG.getName());
+    Map<String, Integer> routeConfig = ArgumentParser.parseStringIntegerMap(routeConfigString);
+    serviceClient.storeRouteConfig(serviceId.getNamespaceId(), appName, serviceName, routeConfig);
+    output.printf("Successfully set route configuration of %s '%s' of application '%s' to '%s'\n",
+                  ElementType.SERVICE.getName(), serviceName, appName, routeConfigString);
   }
 
   @Override
   public String getPattern() {
-    return String.format("set routeconfig service <%s> <%s>", ArgumentName.SERVICE, ArgumentName.ROUTE_CONFIG);
+    return String.format("set routeconfig service <%s> <%s>", ArgumentName.NON_VERSION_SERVICE,
+                         ArgumentName.ROUTE_CONFIG);
   }
 
   @Override
   public String getDescription() {
     return String.format("Set the route configuration for %s. '<%s>' is specified in the format " +
-                           "'version1:number1 version2:number2'.",
+                           "'version1=number1 version2=number2'.",
                          Fragment.of(Article.A, ElementType.SERVICE.getName()), ArgumentName.ROUTE_CONFIG);
   }
 }

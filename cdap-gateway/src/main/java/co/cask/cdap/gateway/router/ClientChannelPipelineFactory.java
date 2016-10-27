@@ -56,23 +56,7 @@ class ClientChannelPipelineFactory implements ChannelPipelineFactory {
   @Override
   public ChannelPipeline getPipeline() throws Exception {
     boolean appSslEnabled = cConf.getBoolean(Constants.Security.AppFabric.SSL_ENABLED);
-    SSLEngine engine = null;
-    if (appSslEnabled) {
-      SSLContext clientContext = null;
-      try {
-        clientContext = SSLContext.getInstance("TLS");
-        clientContext.init(null, PermissiveTrustManagerFactory.getTrustManagers(), null);
-      } catch (NoSuchAlgorithmException | KeyManagementException e) {
-        throw new RuntimeException("SSL is enabled for app-fabric but failed to create SSLContext in the router " +
-                                     "client.", e);
-      }
-      engine = clientContext.createSSLEngine();
-      engine.setUseClientMode(true);
-    }
     ChannelPipeline pipeline = Channels.pipeline();
-    if (appSslEnabled) {
-      pipeline.addFirst("ssl", new SslHandler(engine));
-    }
     pipeline.addLast("tracker", connectionTracker);
     pipeline.addLast("request-encoder", new HttpRequestEncoder());
     // outbound handler gets dynamically added here (after 'request-encoder')

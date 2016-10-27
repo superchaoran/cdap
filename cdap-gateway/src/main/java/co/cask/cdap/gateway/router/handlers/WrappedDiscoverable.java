@@ -40,6 +40,10 @@ public class WrappedDiscoverable {
     return discoverable.getSocketAddress();
   }
 
+  public byte[] getPayload() {
+    return discoverable.getPayload();
+  }
+
   @Override
   public int hashCode() {
     return Objects.hashCode(discoverable.getName(),

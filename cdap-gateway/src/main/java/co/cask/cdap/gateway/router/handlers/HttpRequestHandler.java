@@ -137,7 +137,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
           }
           SSLEngine engine = clientContext.createSSLEngine();
           engine.setUseClientMode(true);
-          outboundChannel.getPipeline().addFirst("ssl", new SslHandler(engine));
+          outboundChannel.getPipeline().addLast("ssl", new SslHandler(engine));
         }
         sender = new MessageSender(inboundChannel, future);
         discoveryLookup.put(discoverable, sender);

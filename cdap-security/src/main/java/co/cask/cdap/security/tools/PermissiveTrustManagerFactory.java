@@ -22,6 +22,7 @@ import java.security.KeyStoreException;
 import java.security.cert.X509Certificate;
 import javax.net.ssl.ManagerFactoryParameters;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.TrustManagerFactorySpi;
 import javax.net.ssl.X509TrustManager;
 

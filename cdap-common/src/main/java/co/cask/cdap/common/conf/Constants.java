@@ -25,6 +25,7 @@ public final class Constants {
 
   public static final String[] FEATURE_TOGGLE_PROPS = {
     Security.SSL_ENABLED,
+    Security.AppFabric.SSL_ENABLED,
     Security.ENABLED,
     Explore.EXPLORE_ENABLED,
   };
@@ -32,6 +33,7 @@ public final class Constants {
   public static final String[] PORT_PROPS = {
     Router.ROUTER_PORT,
     Router.ROUTER_SSL_PORT,
+    AppFabric.SERVER_SSL_PORT,
     Dashboard.BIND_PORT,
     Dashboard.SSL_BIND_PORT,
     Security.AUTH_SERVER_BIND_PORT,
@@ -742,6 +744,8 @@ public final class Constants {
     public static final String BASIC_REALM_FILE = "security.authentication.basic.realmfile";
     /** Enables SSL */
     public static final String SSL_ENABLED = "ssl.enabled";
+    /** Key to mark a discoverable which supports ssl */
+    public static final String SSL_DISCOVERABLE_KEY = "ssl";
 
     /**
      * App Fabric

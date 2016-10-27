@@ -220,11 +220,12 @@ public class AppFabricServer extends AbstractIdleService {
         final InetSocketAddress socketAddress = new InetSocketAddress(announceAddress, announcePort);
         LOG.info("AppFabric HTTP Service announced at {}", socketAddress);
 
+        byte[] isSsl = isSSLEnabled() ? Constants.Security.SSL_DISCOVERABLE_KEY.getBytes() : new byte[]{};
         // TODO accept a list of services, and start them here
         // When it is running, register it with service discovery
         for (final String serviceName : servicesNames) {
           cancellables.add(discoveryService.register(ResolvingDiscoverable.of(
-            new Discoverable(serviceName, socketAddress))));
+            new Discoverable(serviceName, socketAddress, isSsl))));
         }
       }
 

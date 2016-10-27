@@ -113,6 +113,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
       if (sender == null || !sender.isConnected()) {
         InetSocketAddress address = discoverable.getSocketAddress();
 
+
         ChannelFuture future = clientBootstrap.connect(address);
         final Channel outboundChannel = future.getChannel();
         outboundChannel.getPipeline().addAfter("request-encoder",

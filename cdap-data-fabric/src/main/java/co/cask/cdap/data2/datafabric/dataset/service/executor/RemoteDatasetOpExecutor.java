@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -184,8 +185,15 @@ public abstract class RemoteDatasetOpExecutor extends UncaughtExceptionIdleServi
       throw new IllegalStateException("No endpoint for " + Constants.Service.DATASET_EXECUTOR);
     }
     InetSocketAddress addr = endpoint.getSocketAddress();
-    return new URL(String.format("http://%s:%s%s/%s", addr.getHostName(), addr.getPort(),
-                                 Constants.Gateway.API_VERSION_3, path));
+    LOG.info("nsquare: From RemoteDatasetOpExecutor");
+    if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), endpoint.getPayload())) {
+      return new URL(String.format("https://%s:%s%s/%s", addr.getHostName(), addr.getPort(),
+                                   Constants.Gateway.API_VERSION_3, path));
+    } else {
+      return new URL(String.format("http://%s:%s%s/%s", addr.getHostName(), addr.getPort(),
+                                   Constants.Gateway.API_VERSION_3, path));
+
+    }
   }
 
   private void verifyResponse(HttpResponse httpResponse) throws ConflictException {

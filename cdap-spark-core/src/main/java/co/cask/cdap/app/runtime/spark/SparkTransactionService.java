@@ -114,6 +114,7 @@ final class SparkTransactionService extends AbstractIdleService {
     if (bindAddress == null) {
       throw new IllegalStateException("SparkTransactionService hasn't been started");
     }
+    LOG.info("nsquare: from SparkTransactionService");
     return URI.create(String.format("http://%s:%d", bindAddress.getHostName(), bindAddress.getPort()));
   }
 

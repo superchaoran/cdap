@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.net.HttpURLConnection;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
@@ -149,10 +150,16 @@ public abstract class AbstractDistributedMasterServiceManager implements MasterS
     String url = null;
     try {
       Iterable<Discoverable> discoverables = this.discoveryServiceClient.discover(getDiscoverableName());
+      LOG.info("nsquare: From AbstractDistributedMasterServiceManager");
       for (Discoverable discoverable : discoverables) {
         //Ping the discovered service to check its status.
-        url = String.format("http://%s:%d/ping", discoverable.getSocketAddress().getHostName(),
-                                   discoverable.getSocketAddress().getPort());
+        if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
+          url = String.format("https://%s:%d/ping", discoverable.getSocketAddress().getHostName(),
+                              discoverable.getSocketAddress().getPort());
+        } else {
+          url = String.format("http://%s:%d/ping", discoverable.getSocketAddress().getHostName(),
+                              discoverable.getSocketAddress().getPort());
+        }
         if (checkGetStatus(url).equals(HttpResponseStatus.OK)) {
           return true;
         }

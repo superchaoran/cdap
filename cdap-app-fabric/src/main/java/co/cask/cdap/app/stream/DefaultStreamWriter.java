@@ -43,6 +43,8 @@ import com.google.inject.assistedinject.Assisted;
 import org.apache.twill.discovery.Discoverable;
 import org.apache.twill.discovery.DiscoveryServiceClient;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,6 +52,7 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
@@ -58,7 +61,7 @@ import java.util.concurrent.TimeUnit;
  * Default implementation of {@link StreamWriter}
  */
 public class DefaultStreamWriter implements StreamWriter {
-
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultStreamWriter.class);
   private final EndpointStrategy endpointStrategy;
   private final ConcurrentMap<Id.Stream, Boolean> isStreamRegistered;
   private final RuntimeUsageRegistry runtimeUsageRegistry;
@@ -106,8 +109,15 @@ public class DefaultStreamWriter implements StreamWriter {
     }
 
     InetSocketAddress address = discoverable.getSocketAddress();
-    String path = String.format("http://%s:%d%s/namespaces/%s/streams/%s", address.getHostName(), address.getPort(),
-                                Constants.Gateway.API_VERSION_3, namespace.getId(), stream);
+    LOG.info("nsquare: From Default Stream writer");
+    String path;
+    if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
+      path = String.format("https://%s:%d%s/namespaces/%s/streams/%s", address.getHostName(), address.getPort(),
+                                  Constants.Gateway.API_VERSION_3, namespace.getId(), stream);
+    } else {
+      path = String.format("http://%s:%d%s/namespaces/%s/streams/%s", address.getHostName(), address.getPort(),
+                                  Constants.Gateway.API_VERSION_3, namespace.getId(), stream);
+    }
     if (batch) {
       path = String.format("%s/batch", path);
     }

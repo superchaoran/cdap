@@ -132,6 +132,7 @@ public class RemoteNotificationFeedManager implements NotificationFeedManager {
 
   private URL resolve(String resource) throws NotificationFeedException {
     InetSocketAddress addr = getServiceAddress();
+    LOG.info("nsquare: from RemoteNotificationFeedManager");
     String url = String.format("http://%s:%d%s/%s", addr.getHostName(), addr.getPort(),
                                Constants.Gateway.API_VERSION_3, resource);
     LOG.trace("Notification Feed Service URL = {}", url);

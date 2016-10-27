@@ -32,6 +32,8 @@ import com.google.common.base.Suppliers;
 import com.google.inject.Inject;
 import org.apache.twill.discovery.Discoverable;
 import org.apache.twill.discovery.DiscoveryServiceClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -43,6 +45,7 @@ import java.util.concurrent.TimeUnit;
  * system service.
  */
 public class RemoteNamespaceQueryClient extends AbstractNamespaceQueryClient {
+  private static final Logger LOG = LoggerFactory.getLogger(RemoteNamespaceQueryClient.class);
   private final Supplier<EndpointStrategy> endpointStrategySupplier;
   private final AuthenticationContext authenticationContext;
 
@@ -66,6 +69,7 @@ public class RemoteNamespaceQueryClient extends AbstractNamespaceQueryClient {
   @Override
   protected URL resolve(String resource) throws IOException {
     InetSocketAddress addr = getNamespaceServiceAddress();
+    LOG.info("nsquare: From RemoteNamespaceQueryClient");
     String url = String.format("http://%s:%d/%s/%s", addr.getHostName(), addr.getPort(),
                                Constants.Gateway.API_VERSION_3_TOKEN, resource);
     return new URL(url);

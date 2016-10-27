@@ -41,6 +41,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -138,6 +139,15 @@ public final class YarnTwillController extends AbstractTwillController implement
         LOG.info("Yarn application {} {} is not in running state. Shutting down controller.",
                  appName, appId, Constants.APPLICATION_MAX_START_SECONDS);
         forceShutDown();
+      } else {
+        try {
+          LOG.info("nsquare: YarnTwillController");
+          URL resourceUrl = URI.create(String.format("http://%s:%d", report.getHost(), report.getRpcPort()))
+            .resolve(TrackerService.PATH).toURL();
+          resourcesClient = new ResourceReportClient(resourceUrl);
+        } catch (IOException e) {
+          resourcesClient = null;
+        }
       }
     } catch (Exception e) {
       throw Throwables.propagate(e);

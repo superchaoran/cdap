@@ -17,6 +17,7 @@
 package co.cask.cdap.common.internal.remote;
 
 import co.cask.cdap.common.conf.CConfiguration;
+import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.discovery.EndpointStrategy;
 import co.cask.cdap.common.discovery.RandomEndpointStrategy;
 import co.cask.cdap.common.http.DefaultHttpRequestConfig;
@@ -39,12 +40,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.twill.discovery.Discoverable;
 import org.apache.twill.discovery.DiscoveryServiceClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +58,7 @@ import javax.annotation.Nullable;
  * Common HTTP client functionality for remote operations from programs.
  */
 public class RemoteOpsClient {
-
+  private static final Logger LOG = LoggerFactory.getLogger(RemoteOpsClient.class);
   private static final Gson GSON = new GsonBuilder()
     .registerTypeAdapter(BasicThrowable.class, new BasicThrowableCodec())
     .registerTypeAdapter(WorkflowTokenDetail.class, new WorkflowTokenDetailCodec())
@@ -92,9 +96,14 @@ public class RemoteOpsClient {
       throw new RuntimeException(String.format("Cannot discover service %s", discoverableServiceName));
     }
     InetSocketAddress addr = discoverable.getSocketAddress();
-
-    return String.format("http://%s:%s%s/%s",
-                         addr.getHostName(), addr.getPort(), "/v1", resource);
+    LOG.info("nsquare: From RemoteOpsClient");
+    if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
+      return String.format("https://%s:%s%s/%s",
+                           addr.getHostName(), addr.getPort(), "/v1", resource);
+    } else {
+      return String.format("http://%s:%s%s/%s",
+                           addr.getHostName(), addr.getPort(), "/v1", resource);
+    }
   }
 
   private static List<MethodArgument> createArguments(Object... arguments) {

@@ -66,6 +66,7 @@ import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -394,7 +395,13 @@ class DatasetServiceClient {
       throw new ServiceUnavailableException("DatasetService");
     }
     InetSocketAddress addr = discoverable.getSocketAddress();
-    return String.format("http://%s:%s%s/namespaces/%s/data/%s", addr.getHostName(), addr.getPort(),
-                         Constants.Gateway.API_VERSION_3, namespaceId.getNamespace(), resource);
+    LOG.info("nsquare: From Dataset service client");
+    if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
+      return String.format("https://%s:%s%s/namespaces/%s/data/%s", addr.getHostName(), addr.getPort(),
+                           Constants.Gateway.API_VERSION_3, namespaceId.getNamespace(), resource);
+    } else {
+      return String.format("http://%s:%s%s/namespaces/%s/data/%s", addr.getHostName(), addr.getPort(),
+                           Constants.Gateway.API_VERSION_3, namespaceId.getNamespace(), resource);
+    }
   }
 }

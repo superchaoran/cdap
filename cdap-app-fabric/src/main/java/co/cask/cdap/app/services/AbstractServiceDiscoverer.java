@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -72,9 +73,17 @@ public abstract class AbstractServiceDiscoverer implements ServiceDiscoverer {
       return null;
     }
     InetSocketAddress address = discoverable.getSocketAddress();
-    String path = String.format("http://%s:%d%s/namespaces/%s/apps/%s/services/%s/methods/",
-                                address.getHostName(), address.getPort(),
-                                Constants.Gateway.API_VERSION_3, namespaceId, applicationId, serviceId);
+    LOG.info("nsquare: From Abstract service discoverer");
+    String path;
+    if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
+      path = String.format("https://%s:%d%s/namespaces/%s/apps/%s/services/%s/methods/",
+                                  address.getHostName(), address.getPort(),
+                                  Constants.Gateway.API_VERSION_3, namespaceId, applicationId, serviceId);
+    } else {
+      path = String.format("http://%s:%d%s/namespaces/%s/apps/%s/services/%s/methods/",
+                                  address.getHostName(), address.getPort(),
+                                  Constants.Gateway.API_VERSION_3, namespaceId, applicationId, serviceId);
+    }
     try {
       return new URL(path);
     } catch (MalformedURLException e) {

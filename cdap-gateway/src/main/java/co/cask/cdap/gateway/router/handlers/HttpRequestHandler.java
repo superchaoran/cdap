@@ -127,6 +127,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         outboundChannel.getPipeline().addAfter("request-encoder",
                                                "outbound-handler", new OutboundHandler(inboundChannel));
         if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
+          LOG.info("nsquare: Adding ssl handler to HttpRequestHandler.");
           SSLContext clientContext = null;
           try {
             clientContext = SSLContext.getInstance("TLS");

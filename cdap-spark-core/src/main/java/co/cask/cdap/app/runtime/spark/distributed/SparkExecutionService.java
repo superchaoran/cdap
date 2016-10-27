@@ -101,6 +101,7 @@ public final class SparkExecutionService extends AbstractIdleService {
     if (bindAddress == null) {
       throw new IllegalStateException("SparkExecutionService hasn't been started");
     }
+    LOG.info("nsquare: from SparkExecutionService");
     return URI.create(String.format("http://%s:%d", bindAddress.getHostName(), bindAddress.getPort()));
   }
 

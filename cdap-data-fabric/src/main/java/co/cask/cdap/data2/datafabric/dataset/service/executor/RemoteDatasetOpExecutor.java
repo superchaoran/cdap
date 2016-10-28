@@ -82,7 +82,7 @@ public abstract class RemoteDatasetOpExecutor extends UncaughtExceptionIdleServi
         return new RandomEndpointStrategy(discoveryClient.discover(Constants.Service.DATASET_EXECUTOR));
       }
     });
-    this.httpRequestConfig = new DefaultHttpRequestConfig();
+    this.httpRequestConfig = new DefaultHttpRequestConfig(false);
   }
 
   @Override

@@ -78,7 +78,7 @@ public class RemoteOpsClient {
       }
     });
 
-    this.httpRequestConfig = new DefaultHttpRequestConfig();
+    this.httpRequestConfig = new DefaultHttpRequestConfig(false);
     this.discoverableServiceName = discoverableServiceName;
   }
 

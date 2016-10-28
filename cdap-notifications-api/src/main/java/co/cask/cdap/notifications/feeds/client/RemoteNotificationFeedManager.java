@@ -43,6 +43,7 @@ import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -66,10 +67,10 @@ public class RemoteNotificationFeedManager implements NotificationFeedManager {
     });
   }
 
-  private InetSocketAddress getServiceAddress() throws NotificationFeedException {
+  private Discoverable getService() throws NotificationFeedException {
     Discoverable discoverable = endpointStrategySupplier.get().pick(3L, TimeUnit.SECONDS);
     if (discoverable != null) {
-      return discoverable.getSocketAddress();
+      return discoverable;
     }
     throw new NotificationFeedException(
       String.format("Cannot discover service %s", Constants.Service.APP_FABRIC_HTTP));
@@ -131,10 +132,17 @@ public class RemoteNotificationFeedManager implements NotificationFeedManager {
   }
 
   private URL resolve(String resource) throws NotificationFeedException {
-    InetSocketAddress addr = getServiceAddress();
+    Discoverable discoverable = getService();
+    InetSocketAddress addr = discoverable.getSocketAddress();
     LOG.info("nsquare: from RemoteNotificationFeedManager");
-    String url = String.format("http://%s:%d%s/%s", addr.getHostName(), addr.getPort(),
-                               Constants.Gateway.API_VERSION_3, resource);
+    String url;
+    if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
+      url = String.format("https://%s:%d%s/%s", addr.getHostName(), addr.getPort(),
+                                 Constants.Gateway.API_VERSION_3, resource);
+    } else {
+      url = String.format("http://%s:%d%s/%s", addr.getHostName(), addr.getPort(),
+                          Constants.Gateway.API_VERSION_3, resource);
+    }
     LOG.trace("Notification Feed Service URL = {}", url);
     try {
       return new URL(url);
@@ -145,7 +153,7 @@ public class RemoteNotificationFeedManager implements NotificationFeedManager {
 
   private HttpResponse execute(HttpRequest request) throws NotificationFeedException {
     try {
-      return HttpRequests.execute(request, new DefaultHttpRequestConfig());
+      return HttpRequests.execute(request, new DefaultHttpRequestConfig(false));
     } catch (IOException e) {
       throw new NotificationFeedException(
         String.format("Error connecting to Notification Feed Service at %s while doing %s",

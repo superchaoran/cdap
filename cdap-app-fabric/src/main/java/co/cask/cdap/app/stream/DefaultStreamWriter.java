@@ -128,7 +128,7 @@ public class DefaultStreamWriter implements StreamWriter {
     if (authorizationEnabled) {
       builder.addHeader(Constants.Security.Headers.USER_ID, authenticationContext.getPrincipal().getName());
     }
-    HttpResponse response = HttpRequests.execute(builder.build(), new DefaultHttpRequestConfig());
+    HttpResponse response = HttpRequests.execute(builder.build(), new DefaultHttpRequestConfig(false));
     int responseCode = response.getResponseCode();
     if (responseCode == HttpResponseStatus.NOT_FOUND.getCode()) {
       throw new IOException(String.format("Stream %s not found", stream));

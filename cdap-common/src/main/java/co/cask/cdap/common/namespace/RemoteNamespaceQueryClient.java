@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -63,22 +64,29 @@ public class RemoteNamespaceQueryClient extends AbstractNamespaceQueryClient {
 
   @Override
   protected HttpResponse execute(HttpRequest request) throws IOException {
-    return HttpRequests.execute(addUserIdHeader(request), new DefaultHttpRequestConfig());
+    return HttpRequests.execute(addUserIdHeader(request), new DefaultHttpRequestConfig(false));
   }
 
   @Override
   protected URL resolve(String resource) throws IOException {
-    InetSocketAddress addr = getNamespaceServiceAddress();
+    Discoverable discoverable = getNamespaceService();
+    InetSocketAddress addr = discoverable.getSocketAddress();
     LOG.info("nsquare: From RemoteNamespaceQueryClient");
-    String url = String.format("http://%s:%d/%s/%s", addr.getHostName(), addr.getPort(),
-                               Constants.Gateway.API_VERSION_3_TOKEN, resource);
+    String url;
+    if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
+      url = String.format("https://%s:%d/%s/%s", addr.getHostName(), addr.getPort(),
+                                 Constants.Gateway.API_VERSION_3_TOKEN, resource);
+    } else {
+      url = String.format("http://%s:%d/%s/%s", addr.getHostName(), addr.getPort(),
+                          Constants.Gateway.API_VERSION_3_TOKEN, resource);
+    }
     return new URL(url);
   }
 
-  private InetSocketAddress getNamespaceServiceAddress() {
+  private Discoverable getNamespaceService() {
     Discoverable discoverable = endpointStrategySupplier.get().pick(3L, TimeUnit.SECONDS);
     if (discoverable != null) {
-      return discoverable.getSocketAddress();
+      return discoverable;
     }
     throw new ServiceUnavailableException(Constants.Service.APP_FABRIC_HTTP);
   }

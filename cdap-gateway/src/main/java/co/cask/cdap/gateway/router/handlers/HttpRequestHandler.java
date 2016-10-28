@@ -126,6 +126,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         final Channel outboundChannel = future.getChannel();
         outboundChannel.getPipeline().addAfter("request-encoder",
                                                "outbound-handler", new OutboundHandler(inboundChannel));
+        LOG.info("nsquare:" + request.getUri());
         if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
           LOG.info("nsquare: Adding ssl handler to HttpRequestHandler.");
           SSLContext clientContext = null;
@@ -161,6 +162,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
           }
         });
       } else {
+        LOG.info("nsquare: in else HttpRequestHandler");
         Channel outboundChannel = (Channel) inboundChannel.getAttachment();
         if (outboundChannel != null) {
           // Set outbound channel to be readable in case previous request has set it as non-readable

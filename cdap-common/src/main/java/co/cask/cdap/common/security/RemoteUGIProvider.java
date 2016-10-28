@@ -71,7 +71,7 @@ public class RemoteUGIProvider extends AbstractCachedUGIProvider {
       }
     });
     this.locationFactory = locationFactory;
-    this.httpRequestConfig = new DefaultHttpRequestConfig();
+    this.httpRequestConfig = new DefaultHttpRequestConfig(false);
   }
 
   @Override

@@ -102,7 +102,7 @@ class DatasetServiceClient {
       }
     });
     this.namespaceId = namespaceId;
-    this.httpRequestConfig = new DefaultHttpRequestConfig();
+    this.httpRequestConfig = new DefaultHttpRequestConfig(false);
     this.securityEnabled = cConf.getBoolean(Constants.Security.ENABLED);
     this.kerberosEnabled = SecurityUtil.isKerberosEnabled(cConf);
     this.authorizationEnabled = cConf.getBoolean(Constants.Security.Authorization.ENABLED);

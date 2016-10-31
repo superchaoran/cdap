@@ -126,21 +126,21 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         final Channel outboundChannel = future.getChannel();
         outboundChannel.getPipeline().addAfter("request-encoder",
                                                "outbound-handler", new OutboundHandler(inboundChannel));
-        LOG.info("nsquare:" + request.getUri());
-        if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
-          LOG.info("nsquare: Adding ssl handler to HttpRequestHandler.");
-          SSLContext clientContext = null;
-          try {
-            clientContext = SSLContext.getInstance("TLS");
-            clientContext.init(null, PermissiveTrustManagerFactory.getTrustManagers(), null);
-          } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException("SSL is enabled for app-fabric but failed to create SSLContext in the router " +
-                                         "client.", e);
-          }
-          SSLEngine engine = clientContext.createSSLEngine();
-          engine.setUseClientMode(true);
-          outboundChannel.getPipeline().addLast("ssl", new SslHandler(engine));
-        }
+        LOG.info("nsquare:" + request.getUri() + ":");
+//        if (Arrays.equals(Constants.Security.SSL_DISCOVERABLE_KEY.getBytes(), discoverable.getPayload())) {
+//          LOG.info("nsquare: Adding ssl handler to HttpRequestHandler.");
+//          SSLContext clientContext = null;
+//          try {
+//            clientContext = SSLContext.getInstance("TLS");
+//            clientContext.init(null, PermissiveTrustManagerFactory.getTrustManagers(), null);
+//          } catch (NoSuchAlgorithmException | KeyManagementException e) {
+//            throw new RuntimeException("SSL is enabled for app-fabric but failed to create SSLContext in the router "+
+//                                         "client.", e);
+//          }
+//          SSLEngine engine = clientContext.createSSLEngine();
+//          engine.setUseClientMode(true);
+//          outboundChannel.getPipeline().addLast("ssl", new SslHandler(engine));
+//        }
         sender = new MessageSender(inboundChannel, future);
         discoveryLookup.put(discoverable, sender);
 

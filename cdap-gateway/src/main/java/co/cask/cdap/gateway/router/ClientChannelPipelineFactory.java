@@ -29,6 +29,8 @@ import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.handler.timeout.IdleStateHandler;
 import org.jboss.netty.util.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -39,7 +41,7 @@ import javax.net.ssl.SSLEngine;
   Constructs a pipeline factory to be used for creating client pipelines.
  */
 class ClientChannelPipelineFactory implements ChannelPipelineFactory {
-
+  private static final Logger LOG = LoggerFactory.getLogger(ClientChannelPipelineFactory.class);
   private final CConfiguration cConf;
   private final ChannelUpstreamHandler connectionTracker;
   private final int connectionTimeout;
@@ -56,6 +58,19 @@ class ClientChannelPipelineFactory implements ChannelPipelineFactory {
   @Override
   public ChannelPipeline getPipeline() throws Exception {
     boolean appSslEnabled = cConf.getBoolean(Constants.Security.AppFabric.SSL_ENABLED);
+    SSLEngine engine = null;
+    if (appSslEnabled) {
+      SSLContext clientContext = null;
+      try {
+        clientContext = SSLContext.getInstance("TLS");
+        clientContext.init(null, PermissiveTrustManagerFactory.getTrustManagers(), null);
+      } catch (NoSuchAlgorithmException | KeyManagementException e) {
+        throw new RuntimeException("SSL is enabled for app-fabric but failed to create SSLContext in the router " +
+                                     "client.");
+      }
+      engine = clientContext.createSSLEngine();
+      engine.setUseClientMode(true);
+    }
     ChannelPipeline pipeline = Channels.pipeline();
     pipeline.addLast("tracker", connectionTracker);
     pipeline.addLast("request-encoder", new HttpRequestEncoder());
@@ -65,6 +80,10 @@ class ClientChannelPipelineFactory implements ChannelPipelineFactory {
     pipeline.addLast("idle-event-generator",
                      new IdleStateHandler(timer, 0, 0, connectionTimeout));
     pipeline.addLast("idle-event-processor", new IdleEventProcessor());
+    if (appSslEnabled) {
+      LOG.info("nsquare: ClientChannelPipelineFactory adding ssl handler for client.");
+      pipeline.addFirst("ssl", new SslHandler(engine));
+    }
     return pipeline;
   }
 }

@@ -128,7 +128,7 @@ public class DefaultServiceManager extends AbstractProgramManager<ServiceManager
                                   address.getHostName(), address.getPort(),
                                   Constants.Gateway.API_VERSION_3, namespace, applicationId, serviceName);
     } else {
-      path = String.format("https://%s:%d%s/namespaces/%s/apps/%s/services/%s/methods/",
+      path = String.format("http://%s:%d%s/namespaces/%s/apps/%s/services/%s/methods/",
                            address.getHostName(), address.getPort(),
                            Constants.Gateway.API_VERSION_3, namespace, applicationId, serviceName);
     }

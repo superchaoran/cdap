@@ -48,11 +48,11 @@ public class SetRouteConfigCommand extends AbstractAuthCommand {
     ServiceId serviceId = parseNonversionServiceId(arguments);
     String appName = serviceId.getApplication();
     String serviceName = serviceId.getProgram();
-    String routeConfigString = arguments.get(ArgumentName.ROUTE_CONFIG.getName());
-    Map<String, Integer> routeConfig = ArgumentParser.parseStringIntegerMap(routeConfigString);
-    serviceClient.storeRouteConfig(serviceId.getNamespaceId(), appName, serviceName, routeConfig);
+    String routeConfig = arguments.get(ArgumentName.ROUTE_CONFIG.getName());
+    serviceClient.storeRouteConfig(serviceId.getNamespaceId(), appName, serviceName,
+                                   ArgumentParser.parseStringIntegerMap(routeConfig));
     output.printf("Successfully set route configuration of %s '%s' of application '%s' to '%s'\n",
-                  ElementType.SERVICE.getName(), serviceName, appName, routeConfigString);
+                  ElementType.SERVICE.getName(), serviceName, appName, routeConfig);
   }
 
   @Override

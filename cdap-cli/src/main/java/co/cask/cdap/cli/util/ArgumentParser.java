@@ -18,6 +18,7 @@ package co.cask.cdap.cli.util;
 
 import co.cask.cdap.cli.ProgramIdArgument;
 import co.cask.common.cli.util.Parser;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
@@ -67,21 +68,12 @@ public class ArgumentParser {
    * @return the map
    */
   public static Map<String, Integer> parseStringIntegerMap(String mapString) {
-    if (mapString == null || mapString.isEmpty()) {
-      return ImmutableMap.of();
-    }
-
-    ImmutableMap.Builder<String, Integer> result = ImmutableMap.builder();
-    List<String> tokens = Parser.parseInput(mapString);
-    for (String token : tokens) {
-      int firstEquals = token.indexOf('=');
-      if (firstEquals > 0) {
-        String key = token.substring(0, firstEquals);
-        String value = token.substring(firstEquals + 1, token.length());
-        result.put(extractValue(key), Integer.valueOf(extractValue(value)));
+    return Maps.transformValues(parseMap(mapString), new Function<String, Integer>() {
+      @Override
+      public Integer apply(String input) {
+        return Integer.valueOf(input);
       }
-    }
-    return result.build();
+    });
   }
 
   /**

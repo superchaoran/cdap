@@ -358,22 +358,25 @@ public class CLIMainTest extends CLITestBase {
     String qualifiedServiceId = String.format("%s.%s.%s", FakeApp.NAME, fakeAppId.getVersion(),
                                               PrefixedEchoHandler.NAME);
     String qualifiedServiceIdV1 = String.format("%s.%s.%s", FakeApp.NAME, V1_SNAPSHOT, PrefixedEchoHandler.NAME);
-    testCommandOutputContains(cli, "start service " + qualifiedServiceId, "Successfully started service");
-    testCommandOutputContains(cli, "start service " + qualifiedServiceIdV1, "Successfully started service");
-    assertProgramStatus(programClient, service, "RUNNING");
-    assertProgramStatus(programClient, serviceV1, "RUNNING");
-    testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceId, "POST");
-    testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceIdV1, "POST");
-    testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceId, "/echo");
-    testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceIdV1, "/echo");
-    testCommandOutputContains(cli, "check service availability " + qualifiedServiceId, "Service is available");
-    testCommandOutputContains(cli, "check service availability " + qualifiedServiceIdV1, "Service is available");
-    testCommandOutputContains(cli, "call service " + qualifiedServiceId
-      + " POST /echo body \"testBody\"", ":testBody");
-    testCommandOutputContains(cli, "call service " + qualifiedServiceIdV1
-      + " POST /echo body \"testBody\"", ":testBody");
-    // Stop all running services
-    programClient.stopAll(NamespaceId.DEFAULT.toId());
+    try {
+      testCommandOutputContains(cli, "start service " + qualifiedServiceId, "Successfully started service");
+      testCommandOutputContains(cli, "start service " + qualifiedServiceIdV1, "Successfully started service");
+      assertProgramStatus(programClient, service, "RUNNING");
+      assertProgramStatus(programClient, serviceV1, "RUNNING");
+      testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceId, "POST");
+      testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceIdV1, "POST");
+      testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceId, "/echo");
+      testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceIdV1, "/echo");
+      testCommandOutputContains(cli, "check service availability " + qualifiedServiceId, "Service is available");
+      testCommandOutputContains(cli, "check service availability " + qualifiedServiceIdV1, "Service is available");
+      testCommandOutputContains(cli, "call service " + qualifiedServiceId
+        + " POST /echo body \"testBody\"", ":testBody");
+      testCommandOutputContains(cli, "call service " + qualifiedServiceIdV1
+        + " POST /echo body \"testBody\"", ":testBody");
+    } finally {
+      // Stop all running services
+      programClient.stopAll(NamespaceId.DEFAULT.toId());
+    }
   }
 
   @Test

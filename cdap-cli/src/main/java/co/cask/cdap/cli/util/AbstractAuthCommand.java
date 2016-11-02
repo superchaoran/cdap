@@ -28,7 +28,6 @@ import co.cask.cdap.proto.security.Action;
 import co.cask.common.cli.Arguments;
 import co.cask.common.cli.Command;
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 

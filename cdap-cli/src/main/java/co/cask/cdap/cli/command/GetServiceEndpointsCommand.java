@@ -69,7 +69,7 @@ public class GetServiceEndpointsCommand extends AbstractAuthCommand implements C
 
   @Override
   public String getPattern() {
-    return String.format("get endpoints service <%s>", ArgumentName.SERVICE);
+    return String.format("get endpoints service <%s> [version <%s>]", ArgumentName.SERVICE, ArgumentName.APP_VERSION);
   }
 
   @Override

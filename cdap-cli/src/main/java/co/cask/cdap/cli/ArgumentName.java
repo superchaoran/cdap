@@ -20,15 +20,14 @@ package co.cask.cdap.cli;
  * Argument names.
  */
 public enum ArgumentName {
-  PROGRAM("app-id.[app-version.]program-id"),
+  PROGRAM("app-id.program-id"),
   STREAM("stream-id"),
   WORKER("app-id.worker-id"),
   METHOD("app-id.method-id"),
   FLOW("app-id.flow-id"),
   FLOWLET("app-id.flow-id.flowlet-id"),
   WORKFLOW("app-id.workflow-id"),
-  SERVICE("app-id.[app-version.]service-id"),
-  NON_VERSION_SERVICE("app-id.service-id"),
+  SERVICE("app-id.service-id"),
   MAPREDUCE("app-id.mapreduce-id"),
   SPARK("app-id.spark-id"),
 

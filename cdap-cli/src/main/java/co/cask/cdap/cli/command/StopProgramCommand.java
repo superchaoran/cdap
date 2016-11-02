@@ -16,6 +16,7 @@
 
 package co.cask.cdap.cli.command;
 
+import co.cask.cdap.cli.ArgumentName;
 import co.cask.cdap.cli.CLIConfig;
 import co.cask.cdap.cli.ElementType;
 import co.cask.cdap.cli.english.Article;
@@ -56,7 +57,8 @@ public class StopProgramCommand extends AbstractAuthCommand {
 
   @Override
   public String getPattern() {
-    return String.format("stop %s <%s>", elementType.getShortName(), elementType.getArgumentName());
+    return String.format("stop %s <%s> [version <%s>]", elementType.getShortName(), elementType.getArgumentName(),
+                         ArgumentName.APP_VERSION);
   }
 
   @Override

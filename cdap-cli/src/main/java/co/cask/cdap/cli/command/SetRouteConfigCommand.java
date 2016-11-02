@@ -45,7 +45,7 @@ public class SetRouteConfigCommand extends AbstractAuthCommand {
 
   @Override
   public void perform(Arguments arguments, PrintStream output) throws Exception {
-    ServiceId serviceId = parseNonversionServiceId(arguments);
+    ServiceId serviceId = parseServiceId(arguments);
     String appName = serviceId.getApplication();
     String serviceName = serviceId.getProgram();
     String routeConfig = arguments.get(ArgumentName.ROUTE_CONFIG.getName());
@@ -57,7 +57,7 @@ public class SetRouteConfigCommand extends AbstractAuthCommand {
 
   @Override
   public String getPattern() {
-    return String.format("set routeconfig service <%s> <%s>", ArgumentName.NON_VERSION_SERVICE,
+    return String.format("set route-config for service <%s> <%s>", ArgumentName.SERVICE,
                          ArgumentName.ROUTE_CONFIG);
   }
 

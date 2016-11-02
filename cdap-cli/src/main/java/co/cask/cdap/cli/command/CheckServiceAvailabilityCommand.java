@@ -54,7 +54,8 @@ public class CheckServiceAvailabilityCommand extends AbstractAuthCommand impleme
 
   @Override
   public String getPattern() {
-    return String.format("check service availability <%s>", ArgumentName.SERVICE);
+    return String.format("check service availability <%s> [version <%s>]", ArgumentName.SERVICE,
+                         ArgumentName.APP_VERSION);
   }
 
   @Override

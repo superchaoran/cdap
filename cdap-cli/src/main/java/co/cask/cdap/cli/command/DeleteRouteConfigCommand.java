@@ -54,7 +54,7 @@ public class DeleteRouteConfigCommand extends AbstractAuthCommand {
 
   @Override
   public String getPattern() {
-    return String.format("delete routeconfig service <%s>", ArgumentName.SERVICE);
+    return String.format("delete route-config for service <%s>", ArgumentName.SERVICE);
   }
 
   @Override

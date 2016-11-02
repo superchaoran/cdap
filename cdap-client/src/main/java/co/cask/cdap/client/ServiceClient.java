@@ -189,7 +189,8 @@ public class ServiceClient {
   }
 
   /**
-   * Gets a {@link URL} to call methods for a {@link Service}.
+   * Gets a {@link URL} to call methods for a {@link Service}. If multiple versions exist, traffic will be
+   * distributed to each version according to routing strategy.
    *
    * @param service ID of the service
    * @return a URL to call methods of the service
@@ -204,7 +205,16 @@ public class ServiceClient {
                                                        service.getApplicationId(), service.getId()));
   }
 
-  public URL getServiceURL(ServiceId service)
+  /**
+   * Gets a {@link URL} to call methods for a specific version of the {@link Service}.
+   *
+   * @param service ID of the service
+   * @return a URL to call methods of the version of the service
+   * @throws NotFoundException @throws NotFoundException if the app or service could not be found
+   * @throws IOException if a network error occurred
+   * @throws UnauthenticatedException if the request is not authorized successfully in the gateway server
+   */
+  public URL getServiceURL(ProgramId service)
     throws NotFoundException, IOException, UnauthenticatedException, UnauthorizedException {
     // Make sure the service actually exists
     get(service);

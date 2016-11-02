@@ -355,23 +355,23 @@ public class CLIMainTest extends CLITestBase {
   public void testService() throws Exception {
     ServiceId service = fakeAppId.service(PrefixedEchoHandler.NAME);
     ServiceId serviceV1 = fakeAppIdV1.service(PrefixedEchoHandler.NAME);
-    String qualifiedServiceId = String.format("%s.%s.%s", FakeApp.NAME, fakeAppId.getVersion(),
-                                              PrefixedEchoHandler.NAME);
-    String qualifiedServiceIdV1 = String.format("%s.%s.%s", FakeApp.NAME, V1_SNAPSHOT, PrefixedEchoHandler.NAME);
+    String serviceName = String.format("%s.%s", FakeApp.NAME, PrefixedEchoHandler.NAME);
+    String serviceArgument = String.format("%s version %s", serviceName, ApplicationId.DEFAULT_VERSION);
+    String serviceV1Argument = String.format("%s version %s", serviceName, V1_SNAPSHOT);
     try {
-      testCommandOutputContains(cli, "start service " + qualifiedServiceId, "Successfully started service");
-      testCommandOutputContains(cli, "start service " + qualifiedServiceIdV1, "Successfully started service");
+      testCommandOutputContains(cli, "start service " + serviceArgument, "Successfully started service");
+      testCommandOutputContains(cli, "start service " + serviceV1Argument, "Successfully started service");
       assertProgramStatus(programClient, service, "RUNNING");
       assertProgramStatus(programClient, serviceV1, "RUNNING");
-      testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceId, "POST");
-      testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceIdV1, "POST");
-      testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceId, "/echo");
-      testCommandOutputContains(cli, "get endpoints service " + qualifiedServiceIdV1, "/echo");
-      testCommandOutputContains(cli, "check service availability " + qualifiedServiceId, "Service is available");
-      testCommandOutputContains(cli, "check service availability " + qualifiedServiceIdV1, "Service is available");
-      testCommandOutputContains(cli, "call service " + qualifiedServiceId
+      testCommandOutputContains(cli, "get endpoints service " + serviceArgument, "POST");
+      testCommandOutputContains(cli, "get endpoints service " + serviceV1Argument, "POST");
+      testCommandOutputContains(cli, "get endpoints service " + serviceArgument, "/echo");
+      testCommandOutputContains(cli, "get endpoints service " + serviceV1Argument, "/echo");
+      testCommandOutputContains(cli, "check service availability " + serviceArgument, "Service is available");
+      testCommandOutputContains(cli, "check service availability " + serviceV1Argument, "Service is available");
+      testCommandOutputContains(cli, "call service " + serviceArgument
         + " POST /echo body \"testBody\"", ":testBody");
-      testCommandOutputContains(cli, "call service " + qualifiedServiceIdV1
+      testCommandOutputContains(cli, "call service " + serviceV1Argument
         + " POST /echo body \"testBody\"", ":testBody");
     } finally {
       // Stop all running services
@@ -383,15 +383,15 @@ public class CLIMainTest extends CLITestBase {
   public void testRuntimeArgs() throws Exception {
     ServiceId service = fakeAppId.service(PrefixedEchoHandler.NAME);
     ServiceId serviceV1 = fakeAppIdV1.service(PrefixedEchoHandler.NAME);
-    String qualifiedServiceId = String.format("%s.%s.%s", FakeApp.NAME, ApplicationId.DEFAULT_VERSION,
-                                              PrefixedEchoHandler.NAME);
-    String qualifiedServiceIdV1 = String.format("%s.%s.%s", FakeApp.NAME, V1_SNAPSHOT, PrefixedEchoHandler.NAME);
+    String serviceName = String.format("%s.%s", FakeApp.NAME, PrefixedEchoHandler.NAME);
+    String serviceArgument = String.format("%s version %s", serviceName, ApplicationId.DEFAULT_VERSION);
+    String serviceV1Argument = String.format("%s version %s", serviceName, V1_SNAPSHOT);
 
     // Start service with default version
     Map<String, String> runtimeArgs = ImmutableMap.of("sdf", "bacon");
     String runtimeArgsJson = GSON.toJson(runtimeArgs);
     String runtimeArgsKV = Joiner.on(",").withKeyValueSeparator("=").join(runtimeArgs);
-    testCommandOutputContains(cli, "start service " + qualifiedServiceId + " '" + runtimeArgsKV + "'",
+    testCommandOutputContains(cli, "start service " + serviceArgument + " '" + runtimeArgsKV + "'",
                               "Successfully started service");
     assertProgramStatus(programClient, service, "RUNNING");
 
@@ -400,35 +400,35 @@ public class CLIMainTest extends CLITestBase {
       Map<String, String> runtimeArgs1 = ImmutableMap.of("sdf", "chickenz");
       String runtimeArgs1Json = GSON.toJson(runtimeArgs1);
       String runtimeArgs1KV = Joiner.on(",").withKeyValueSeparator("=").join(runtimeArgs1);
-      testCommandOutputContains(cli, "start service " + qualifiedServiceIdV1 + " '" + runtimeArgs1KV + "'",
+      testCommandOutputContains(cli, "start service " + serviceV1Argument + " '" + runtimeArgs1KV + "'",
                                 "Successfully started service");
       assertProgramStatus(programClient, serviceV1, "RUNNING");
       // call service and stop it
-      testCommandOutputContains(cli, "call service " + qualifiedServiceId + " POST /echo body \"testBody\"",
+      testCommandOutputContains(cli, "call service " + serviceArgument + " POST /echo body \"testBody\"",
                                 "bacon:testBody");
-      testCommandOutputContains(cli, "stop service " + qualifiedServiceId, "Successfully stopped service");
+      testCommandOutputContains(cli, "stop service " + serviceArgument, "Successfully stopped service");
       assertProgramStatus(programClient, service, "STOPPED");
 
       // call serviceV1 and stop it
-      testCommandOutputContains(cli, "call service " + qualifiedServiceIdV1 + " POST /echo body \"testBody\"",
+      testCommandOutputContains(cli, "call service " + serviceV1Argument + " POST /echo body \"testBody\"",
                                 "chickenz:testBody");
-      testCommandOutputContains(cli, "stop service " + qualifiedServiceIdV1, "Successfully stopped service");
+      testCommandOutputContains(cli, "stop service " + serviceV1Argument, "Successfully stopped service");
       assertProgramStatus(programClient, serviceV1, "STOPPED");
 
       // set runtimeargs1 for service, get runtimeargs1, call service
-      testCommandOutputContains(cli, "set service runtimeargs " + qualifiedServiceId + " '" + runtimeArgs1KV + "'",
+      testCommandOutputContains(cli, "set service runtimeargs " + serviceArgument + " '" + runtimeArgs1KV + "'",
                                 "Successfully set runtime args");
-      testCommandOutputContains(cli, "start service " + qualifiedServiceId, "Successfully started service");
-      testCommandOutputContains(cli, "get service runtimeargs " + qualifiedServiceId, runtimeArgs1Json);
-      testCommandOutputContains(cli, "call service " + qualifiedServiceId + " POST /echo body \"testBody\"",
+      testCommandOutputContains(cli, "start service " + serviceArgument, "Successfully started service");
+      testCommandOutputContains(cli, "get service runtimeargs " + serviceArgument, runtimeArgs1Json);
+      testCommandOutputContains(cli, "call service " + serviceArgument + " POST /echo body \"testBody\"",
                                 "chickenz:testBody");
 
       // set runtimeargs for serviceV1, get runtimeargs, call service
-      testCommandOutputContains(cli, "set service runtimeargs " + qualifiedServiceIdV1 + " '" + runtimeArgsKV + "'",
+      testCommandOutputContains(cli, "set service runtimeargs " + serviceV1Argument + " '" + runtimeArgsKV + "'",
                                 "Successfully set runtime args");
-      testCommandOutputContains(cli, "start service " + qualifiedServiceIdV1, "Successfully started service");
-      testCommandOutputContains(cli, "get service runtimeargs " + qualifiedServiceIdV1, runtimeArgsJson);
-      testCommandOutputContains(cli, "call service " + qualifiedServiceIdV1 + " POST /echo body \"testBody\"",
+      testCommandOutputContains(cli, "start service " + serviceV1Argument, "Successfully started service");
+      testCommandOutputContains(cli, "get service runtimeargs " + serviceV1Argument, runtimeArgsJson);
+      testCommandOutputContains(cli, "call service " + serviceV1Argument + " POST /echo body \"testBody\"",
                                 "bacon:testBody");
     } finally {
       // Stop all running services
@@ -440,58 +440,57 @@ public class CLIMainTest extends CLITestBase {
   public void testRouteConfig() throws Exception {
     ServiceId service = fakeAppId.service(PrefixedEchoHandler.NAME);
     ServiceId serviceV1 = fakeAppIdV1.service(PrefixedEchoHandler.NAME);
-    String qualifiedServiceId = String.format("%s.%s.%s", FakeApp.NAME, ApplicationId.DEFAULT_VERSION,
-                                              PrefixedEchoHandler.NAME);
-    String qualifiedServiceIdV1 = String.format("%s.%s.%s", FakeApp.NAME, V1_SNAPSHOT, PrefixedEchoHandler.NAME);
-    String nonVersionServiceId = String.format("%s.%s", FakeApp.NAME, PrefixedEchoHandler.NAME);
+    String serviceName = String.format("%s.%s", FakeApp.NAME, PrefixedEchoHandler.NAME);
+    String serviceArgument = String.format("%s version %s", serviceName, ApplicationId.DEFAULT_VERSION);
+    String serviceV1Argument = String.format("%s version %s", serviceName, V1_SNAPSHOT);
 
     try {
       // Start service with default version
       Map<String, String> runtimeArgs = ImmutableMap.of("sdf", ApplicationId.DEFAULT_VERSION);
       String runtimeArgsKV = SPACE_JOINER.withKeyValueSeparator("=").join(runtimeArgs);
-      testCommandOutputContains(cli, "start service " + qualifiedServiceId + " '" + runtimeArgsKV + "'",
+      testCommandOutputContains(cli, "start service " + serviceArgument + " '" + runtimeArgsKV + "'",
                                 "Successfully started service");
       assertProgramStatus(programClient, service, "RUNNING");
       // Verify that RouteConfig is empty initially
-      testCommandOutputContains(cli, "get routeconfig service " + nonVersionServiceId, GSON.toJson(ImmutableMap.of()));
+      testCommandOutputContains(cli, "get route-config for service " + serviceName, GSON.toJson(ImmutableMap.of()));
       // Call non-version service and get response from service with Default version
-      testCommandOutputContains(cli, "call service " + nonVersionServiceId + " POST /echo body \"testBody\"",
+      testCommandOutputContains(cli, "call service " + serviceName + " POST /echo body \"testBody\"",
                                 String.format("%s:testBody", ApplicationId.DEFAULT_VERSION));
 
       // Start serviceV1
       Map<String, String> runtimeArgs1 = ImmutableMap.of("sdf", V1_SNAPSHOT);
       String runtimeArgs1KV = SPACE_JOINER.withKeyValueSeparator("=").join(runtimeArgs1);
-      testCommandOutputContains(cli, "start service " + qualifiedServiceIdV1 + " '" + runtimeArgs1KV + "'",
+      testCommandOutputContains(cli, "start service " + serviceV1Argument + " '" + runtimeArgs1KV + "'",
                                 "Successfully started service");
       assertProgramStatus(programClient, serviceV1, "RUNNING");
 
       // Set RouteConfig to route all traffic to service with default version
       Map<String, Integer> routeConfig = ImmutableMap.of(ApplicationId.DEFAULT_VERSION, 100, V1_SNAPSHOT, 0);
       String routeConfigKV = SPACE_JOINER.withKeyValueSeparator("=").join(routeConfig);
-      testCommandOutputContains(cli, "set routeconfig service " + nonVersionServiceId + " '" + routeConfigKV + "'",
+      testCommandOutputContains(cli, "set route-config for service " + serviceName + " '" + routeConfigKV + "'",
                                 "Successfully set route configuration");
       for (int i = 0; i < 10; i++) {
-        testCommandOutputContains(cli, "call service " + nonVersionServiceId + " POST /echo body \"testBody\"",
+        testCommandOutputContains(cli, "call service " + serviceName + " POST /echo body \"testBody\"",
                                   String.format("%s:testBody", ApplicationId.DEFAULT_VERSION));
       }
       // Get the RouteConfig set previously
-      testCommandOutputContains(cli, "get routeconfig service " + nonVersionServiceId, GSON.toJson(routeConfig));
+      testCommandOutputContains(cli, "get route-config for service " + serviceName, GSON.toJson(routeConfig));
 
       // Set RouteConfig to route all traffic to serviceV1
       routeConfig = ImmutableMap.of(ApplicationId.DEFAULT_VERSION, 0, V1_SNAPSHOT, 100);
       routeConfigKV = SPACE_JOINER.withKeyValueSeparator("=").join(routeConfig);
-      testCommandOutputContains(cli, "set routeconfig service " + nonVersionServiceId + " '" + routeConfigKV + "'",
+      testCommandOutputContains(cli, "set route-config for service " + serviceName + " '" + routeConfigKV + "'",
                                 "Successfully set route configuration");
       for (int i = 0; i < 10; i++) {
-        testCommandOutputContains(cli, "call service " + nonVersionServiceId + " POST /echo body \"testBody\"",
+        testCommandOutputContains(cli, "call service " + serviceName + " POST /echo body \"testBody\"",
                                   String.format("%s:testBody", V1_SNAPSHOT));
       }
       // Get the RouteConfig set previously
-      testCommandOutputContains(cli, "get routeconfig service " + nonVersionServiceId, GSON.toJson(routeConfig));
+      testCommandOutputContains(cli, "get route-config for service " + serviceName, GSON.toJson(routeConfig));
       // Delete the RouteConfig and verify the RouteConfig is empty
-      testCommandOutputContains(cli, "delete routeconfig service " + nonVersionServiceId,
+      testCommandOutputContains(cli, "delete route-config for service " + serviceName,
                                 "Successfully deleted route configuration");
-      testCommandOutputContains(cli, "get routeconfig service " + nonVersionServiceId, GSON.toJson(ImmutableMap.of()));
+      testCommandOutputContains(cli, "get route-config for service " + serviceName, GSON.toJson(ImmutableMap.of()));
     } finally {
       // Stop all running services
       programClient.stopAll(NamespaceId.DEFAULT.toId());

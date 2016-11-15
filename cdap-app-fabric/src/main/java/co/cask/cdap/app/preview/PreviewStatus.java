@@ -30,7 +30,8 @@ public class PreviewStatus {
     RUNNING,
     COMPLETED,
     DEPLOY_FAILED,
-    RUN_FAILED
+    RUN_FAILED,
+    KILLED
   }
 
   private final Status status;

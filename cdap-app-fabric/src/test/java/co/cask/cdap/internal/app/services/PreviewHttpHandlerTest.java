@@ -15,9 +15,12 @@
  */
 package co.cask.cdap.internal.app.services;
 
+import co.cask.cdap.app.preview.PreviewManager;
 import co.cask.cdap.gateway.handlers.preview.PreviewHttpHandler;
 import co.cask.cdap.internal.app.services.http.AppFabricTestBase;
 import co.cask.cdap.proto.id.ApplicationId;
+import com.google.inject.Injector;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashSet;
@@ -29,7 +32,21 @@ public class PreviewHttpHandlerTest extends AppFabricTestBase {
 
   @Test
   public void testInjector() throws Exception {
+    // Make sure same instance of the PreviewHttpHandler is returned
+    Assert.assertEquals(getInjector().getInstance(PreviewHttpHandler.class),
+                        getInjector().getInstance(PreviewHttpHandler.class));
+
     PreviewHttpHandler handler = getInjector().getInstance(PreviewHttpHandler.class);
-    handler.createPreviewInjector(new ApplicationId("ns", "app"), new HashSet<String>());
+    Injector previewInjector = handler.createPreviewInjector(new ApplicationId("ns1", "app1"), new HashSet<String>());
+
+    // Make sure same PreviewManager instance is returned for a same preview
+    Assert.assertEquals(previewInjector.getInstance(PreviewManager.class),
+                        previewInjector.getInstance(PreviewManager.class));
+
+    Injector anotherPreviewInjector
+      = handler.createPreviewInjector(new ApplicationId("ns2", "app2"), new HashSet<String>());
+
+    Assert.assertNotEquals(previewInjector.getInstance(PreviewManager.class),
+                           anotherPreviewInjector.getInstance(PreviewManager.class));
   }
 }

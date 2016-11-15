@@ -20,6 +20,7 @@ import co.cask.cdap.common.NotFoundException;
 import co.cask.cdap.proto.artifact.AppRequest;
 import co.cask.cdap.proto.id.ApplicationId;
 import co.cask.cdap.proto.id.NamespaceId;
+import com.google.gson.JsonElement;
 import org.apache.twill.api.logging.LogEntry;
 
 import java.util.Collection;
@@ -33,12 +34,11 @@ public interface PreviewManager {
 
   /**
    * Start the preview of an application config provided as an input.
-   * @param namespaceId the id of the namespace
+   * @param preview the id of the preview application
    * @param request the application request containing app configs
-   * @return the id of the preview application
    * @throws Exception if there were any error during starting preview
    */
-  ApplicationId start(NamespaceId namespaceId, AppRequest<?> request) throws Exception;
+  void start(ApplicationId preview, AppRequest<?> request) throws Exception;
 
   /**
    * Get the status for the specified preview represented by {@link ApplicationId}.
@@ -66,10 +66,10 @@ public interface PreviewManager {
   /**
    * Get the data associated with the preview.
    * @param preview the id associated with the preview
-   * @return the {@link Map} of tracer name to properties associated with the tracer for a given preview
-   * @throws NotFoundException if the previewId is not found
+   * @param tracerName the name of the tracer used for preview
+   * @return the {@link Map} of properties associated with the tracer for a given preview
    */
-  Map<String, Map<String, List<Object>>> getData(ApplicationId preview) throws NotFoundException;
+  Map<String, List<JsonElement>> getData(ApplicationId preview, String tracerName);
 
   /**
    * Get metric associated with the preview.

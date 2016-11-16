@@ -409,6 +409,10 @@ export default class WrangleData extends Component {
     columnTypes[newName] = columnTypes[originalName];
     delete columnTypes[originalName];
 
+    let histogram = this.state.histogram;
+    histogram[newName] = histogram[originalName];
+    delete histogram[originalName];
+
     this.setState({
       headersList: headers,
       columnTypes: columnTypes,

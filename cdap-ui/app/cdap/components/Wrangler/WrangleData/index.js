@@ -50,6 +50,7 @@ export default class WrangleData extends Component {
     this.state = {
       headersList: headers,
       data: this.props.data,
+      errors: {},
       history: [],
       histogram: histogram,
       columnTypes: columnTypes,
@@ -70,6 +71,34 @@ export default class WrangleData extends Component {
     this.onMerge = this.onMerge.bind(this);
     this.substringColumnClick = this.substringColumnClick.bind(this);
     this.onSubstring = this.onSubstring.bind(this);
+  }
+
+  componentDidMount() {
+    this.prepData();
+  }
+
+  prepData() {
+    // Detect Null
+    const headers = this.state.headersList;
+    const errors = this.state.errors;
+
+    headers.forEach((column) => {
+      errors[column] = this.detectNullInColumm(this.state.data, column);
+    });
+
+    this.setState({errors});
+  }
+
+  detectNullInColumm(data, column) {
+    let errorObject = {count: 0};
+    data.forEach((row, index) => {
+      if (row[column] === null || !row[column]) {
+        errorObject[index] = true;
+        errorObject.count++;
+      }
+    });
+
+    return errorObject;
   }
 
   renderActionList() {
@@ -583,6 +612,14 @@ export default class WrangleData extends Component {
 
     const headers = this.state.headersList;
     const data = this.state.data;
+    const errors = this.state.errors;
+
+    const errorCount = headers.reduce((prev, curr) => {
+      let count = errors[curr] ? errors[curr].count : 0;
+      return prev + count;
+    }, 0);
+
+    const errorCircle = <i className="fa fa-circle error pull-right"></i>;
 
     return (
       <div className="wrangler-data row">
@@ -599,8 +636,26 @@ export default class WrangleData extends Component {
           />
 
         </div>
+
         <div className="col-xs-9 wrangle-results">
-          <table className="table">
+          <div className="wrangler-data-metrics">
+            <div className="metric-block">
+              <h3>{this.state.data.length}</h3>
+              <h5>Rows</h5>
+            </div>
+
+            <div className="metric-block">
+              <h3>{this.state.headersList.length}</h3>
+              <h5>Columns</h5>
+            </div>
+
+            <div className="metric-block">
+              <h3>{errorCount}</h3>
+              <h5>Errors</h5>
+            </div>
+          </div>
+
+          <table className="table table-bordered">
             <thead>
               <tr>
                 <th></th>
@@ -615,6 +670,7 @@ export default class WrangleData extends Component {
                         })}
                       >
                         {head} ({this.state.columnTypes[head]})
+                        {errors[head] && errors[head].count ? errorCircle : null}
                       </th>
                     );
                   })
@@ -641,7 +697,9 @@ export default class WrangleData extends Component {
               { data.map((row, index) => {
                 return (
                   <tr key={shortid.generate()}>
-                    <td>{index+1}</td>
+                    <td>
+                      <span className="content">{index+1}</span>
+                    </td>
                     {
                       headers.map((head) => {
                         return (
@@ -651,7 +709,8 @@ export default class WrangleData extends Component {
                               active: this.state.activeSelection === head
                             })}
                           >
-                            {row[head]}
+                            <span className="content">{row[head]}</span>
+                            {errors[head] && errors[head][index] ? errorCircle : null}
                           </td>
                         );
                       })

@@ -36,24 +36,14 @@ export default class WrangleData extends Component {
   constructor(props) {
     super(props);
 
-    let headers = Object.keys(this.props.data[0]);
-
-    let columnTypes = {};
-    let histogram = {};
-    headers.forEach((column) => {
-      let columnType = inferColumn(this.props.data, column);
-      columnTypes[column] = columnType;
-
-      histogram[column] = createBucket(this.props.data, column, columnType);
-    });
-
     this.state = {
-      headersList: headers,
+      loading: true,
+      headersList: [],
       data: this.props.data,
       errors: {},
       history: [],
-      histogram: histogram,
-      columnTypes: columnTypes,
+      histogram: {},
+      columnTypes: {},
       activeSelection: null,
       activeSelectionType: null,
       isRename: false,
@@ -79,14 +69,26 @@ export default class WrangleData extends Component {
 
   prepData() {
     // Detect Null
-    const headers = this.state.headersList;
-    const errors = this.state.errors;
+    const headersList = Object.keys(this.state.data[0]);
+    const errors = {};
+    let columnTypes = {};
+    let histogram = {};
 
-    headers.forEach((column) => {
+    headersList.forEach((column) => {
+      let columnType = inferColumn(this.state.data, column);
+      columnTypes[column] = columnType;
+
+      histogram[column] = createBucket(this.state.data, column, columnType);
       errors[column] = this.detectNullInColumm(this.state.data, column);
     });
 
-    this.setState({errors});
+    this.setState({
+      headersList,
+      errors,
+      columnTypes,
+      histogram,
+      loading: false
+    });
   }
 
   detectNullInColumm(data, column) {
@@ -628,6 +630,17 @@ export default class WrangleData extends Component {
   }
 
   render() {
+    if (this.state.loading) {
+      return (
+        <div className="loading text-center">
+          <div>
+            <span className="fa fa-spinner fa-spin"></span>
+          </div>
+          <h3>Wrangling...</h3>
+        </div>
+      );
+    }
+
 
     const headers = this.state.headersList;
     const data = this.state.data;
@@ -642,7 +655,13 @@ export default class WrangleData extends Component {
 
     return (
       <div className="wrangler-data row">
-        <div className="col-xs-3 wrangle-transforms">
+        <div className="wrangle-transforms">
+          <div className="wrangle-filters text-center">
+            <span className="fa fa-undo"></span>
+            <span className="fa fa-repeat"></span>
+            <span className="fa fa-filter"></span>
+          </div>
+
           <h4>Actions</h4>
 
           {this.renderActionList()}
@@ -656,7 +675,7 @@ export default class WrangleData extends Component {
 
         </div>
 
-        <div className="col-xs-9 wrangle-results">
+        <div className="wrangle-results">
           <div className="wrangler-data-metrics">
             <div className="metric-block">
               <h3>{this.state.data.length}</h3>
@@ -669,76 +688,78 @@ export default class WrangleData extends Component {
             </div>
 
             <div className="metric-block">
-              <h3>{errorCount}</h3>
+              <h3 className="text-danger">{errorCount}</h3>
               <h5>Errors</h5>
             </div>
           </div>
 
-          <table className="table table-bordered">
-            <thead>
-              <tr>
-                <th></th>
-                {
-                  headers.map((head) => {
-                    return (
-                      <th
-                        key={head}
-                        onClick={this.columnClickHandler.bind(this, head)}
-                        className={classnames('column-name', {
-                          active: this.state.activeSelection === head
-                        })}
-                      >
-                        {head} ({this.state.columnTypes[head]})
-                        {errors[head] && errors[head].count ? errorCircle : null}
-                      </th>
-                    );
-                  })
-                }
-              </tr>
-              <tr>
-                <th></th>
-                {
-                  headers.map((head) => {
-                    return (
-                      <th key={head}>
-                        <Histogram
-                          data={this.state.histogram[head].data}
-                          labels={this.state.histogram[head].labels}
-                        />
-                      </th>
-                    );
-                  })
-                }
-              </tr>
-            </thead>
+          <div className="data-table">
+            <table className="table table-bordered">
+              <thead>
+                <tr>
+                  <th className="index-column"></th>
+                  {
+                    headers.map((head) => {
+                      return (
+                        <th
+                          key={head}
+                          onClick={this.columnClickHandler.bind(this, head)}
+                          className={classnames('column-name', {
+                            active: this.state.activeSelection === head
+                          })}
+                        >
+                          {head} ({this.state.columnTypes[head]})
+                          {errors[head] && errors[head].count ? errorCircle : null}
+                        </th>
+                      );
+                    })
+                  }
+                </tr>
+                <tr>
+                  <th></th>
+                  {
+                    headers.map((head) => {
+                      return (
+                        <th key={head}>
+                          <Histogram
+                            data={this.state.histogram[head].data}
+                            labels={this.state.histogram[head].labels}
+                          />
+                        </th>
+                      );
+                    })
+                  }
+                </tr>
+              </thead>
 
-            <tbody>
-              { data.map((row, index) => {
-                return (
-                  <tr key={shortid.generate()}>
-                    <td>
-                      <span className="content">{index+1}</span>
-                    </td>
-                    {
-                      headers.map((head) => {
-                        return (
-                          <td
-                            key={shortid.generate()}
-                            className={classnames({
-                              active: this.state.activeSelection === head
-                            })}
-                          >
-                            <span className="content">{row[head]}</span>
-                            {errors[head] && errors[head][index] ? errorCircle : null}
-                          </td>
-                        );
-                      })
-                    }
-                  </tr>
-                );
-              }) }
-            </tbody>
-          </table>
+              <tbody>
+                { data.map((row, index) => {
+                  return (
+                    <tr key={shortid.generate()}>
+                      <td className="index-column">
+                        <span className="content">{index+1}</span>
+                      </td>
+                      {
+                        headers.map((head) => {
+                          return (
+                            <td
+                              key={shortid.generate()}
+                              className={classnames({
+                                active: this.state.activeSelection === head
+                              })}
+                            >
+                              <span className="content">{row[head]}</span>
+                              {errors[head] && errors[head][index] ? errorCircle : null}
+                            </td>
+                          );
+                        })
+                      }
+                    </tr>
+                  );
+                }) }
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     );

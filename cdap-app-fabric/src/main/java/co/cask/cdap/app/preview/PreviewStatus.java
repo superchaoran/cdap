@@ -16,6 +16,8 @@
 
 package co.cask.cdap.app.preview;
 
+import co.cask.cdap.proto.BasicThrowable;
+
 import java.util.Objects;
 import javax.annotation.Nullable;
 
@@ -35,9 +37,9 @@ public class PreviewStatus {
   }
 
   private final Status status;
-  private final Throwable throwable;
+  private final BasicThrowable throwable;
 
-  public PreviewStatus(Status status, @Nullable Throwable throwable) {
+  public PreviewStatus(Status status, @Nullable BasicThrowable throwable) {
     this.status = status;
     this.throwable = throwable;
   }
@@ -50,7 +52,7 @@ public class PreviewStatus {
    * Return the {@link Throwable} if preview failed, otherwise {@code null} is returned.
    */
   @Nullable
-  public Throwable getThrowable() {
+  public BasicThrowable getThrowable() {
     return throwable;
   }
 

@@ -29,6 +29,7 @@ import co.cask.cdap.internal.app.runtime.AbstractListener;
 import co.cask.cdap.internal.app.services.ApplicationLifecycleService;
 import co.cask.cdap.internal.app.services.ProgramLifecycleService;
 import co.cask.cdap.internal.app.services.PropertiesResolver;
+import co.cask.cdap.proto.BasicThrowable;
 import co.cask.cdap.proto.Id;
 import co.cask.cdap.proto.ProgramType;
 import co.cask.cdap.proto.artifact.AppRequest;
@@ -92,7 +93,7 @@ public class DefaultPreviewManager implements PreviewManager {
         }
       });
     } catch (Exception e) {
-      this.status = new PreviewStatus(PreviewStatus.Status.DEPLOY_FAILED, e);
+      this.status = new PreviewStatus(PreviewStatus.Status.DEPLOY_FAILED, new BasicThrowable(e));
       return;
     }
 
@@ -119,7 +120,7 @@ public class DefaultPreviewManager implements PreviewManager {
 
       @Override
       public void error(Throwable cause) {
-        status = new PreviewStatus(PreviewStatus.Status.RUN_FAILED, cause);
+        status = new PreviewStatus(PreviewStatus.Status.RUN_FAILED, new BasicThrowable(cause));
       }
     }, Threads.SAME_THREAD_EXECUTOR);
   }

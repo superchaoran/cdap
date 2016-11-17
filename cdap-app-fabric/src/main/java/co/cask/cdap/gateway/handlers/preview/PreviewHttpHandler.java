@@ -46,6 +46,7 @@ import co.cask.cdap.gateway.handlers.meta.RemoteSystemOperationsServiceModule;
 import co.cask.cdap.gateway.handlers.util.AbstractAppFabricHttpHandler;
 import co.cask.cdap.internal.app.namespace.LocalStorageProviderNamespaceAdmin;
 import co.cask.cdap.internal.app.namespace.StorageProviderNamespaceAdmin;
+import co.cask.cdap.internal.app.preview.PreviewRuntimeService;
 import co.cask.cdap.internal.app.runtime.artifact.ArtifactRepository;
 import co.cask.cdap.internal.app.runtime.artifact.ArtifactStore;
 import co.cask.cdap.logging.guice.LoggingModules;
@@ -162,6 +163,11 @@ public class PreviewHttpHandler extends AbstractAppFabricHttpHandler {
         @Override
         @ParametersAreNonnullByDefault
         public void onRemoval(RemovalNotification<ApplicationId, Injector> notification) {
+          Injector injector = notification.getValue();
+          if (injector != null) {
+            PreviewRuntimeService service = injector.getInstance(PreviewRuntimeService.class);
+            service.stopAndWait();
+          }
           ApplicationId application = notification.getKey();
           if (application == null) {
             return;
@@ -201,6 +207,9 @@ public class PreviewHttpHandler extends AbstractAppFabricHttpHandler {
 
     Injector injector = createPreviewInjector(application, realDatasets);
     appInjectors.put(application, injector);
+    PreviewRuntimeService service = injector.getInstance(PreviewRuntimeService.class);
+    service.startAndWait();
+
     PreviewManager manager = injector.getInstance(PreviewManager.class);
     manager.start(application, appRequest);
     responder.sendString(HttpResponseStatus.OK, GSON.toJson(application));

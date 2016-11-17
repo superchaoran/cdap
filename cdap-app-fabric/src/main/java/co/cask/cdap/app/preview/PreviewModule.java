@@ -30,6 +30,7 @@ import co.cask.cdap.internal.app.namespace.DefaultNamespaceAdmin;
 import co.cask.cdap.internal.app.namespace.DefaultNamespaceResourceDeleter;
 import co.cask.cdap.internal.app.namespace.NamespaceResourceDeleter;
 import co.cask.cdap.internal.app.preview.DefaultPreviewManager;
+import co.cask.cdap.internal.app.preview.PreviewRuntimeService;
 import co.cask.cdap.internal.app.runtime.schedule.NoopScheduler;
 import co.cask.cdap.internal.app.runtime.schedule.Scheduler;
 import co.cask.cdap.internal.app.services.ApplicationLifecycleService;
@@ -86,5 +87,7 @@ public class PreviewModule extends PrivateModule {
     bind(PreviewStore.class).to(DefaultPreviewStore.class).in(Scopes.SINGLETON);
 
     bind(Scheduler.class).to(NoopScheduler.class);
+    bind(PreviewRuntimeService.class).in(Scopes.SINGLETON);
+    expose(PreviewRuntimeService.class);
   }
 }

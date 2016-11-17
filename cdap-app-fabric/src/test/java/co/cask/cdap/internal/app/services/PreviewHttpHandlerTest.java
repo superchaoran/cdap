@@ -37,6 +37,7 @@ import co.cask.cdap.data.view.ViewAdminModules;
 import co.cask.cdap.explore.guice.ExploreClientModule;
 import co.cask.cdap.gateway.handlers.meta.RemoteSystemOperationsServiceModule;
 import co.cask.cdap.gateway.handlers.preview.PreviewHttpHandler;
+import co.cask.cdap.internal.app.preview.PreviewRuntimeService;
 import co.cask.cdap.logging.guice.LogReaderRuntimeModules;
 import co.cask.cdap.logging.guice.LoggingModules;
 import co.cask.cdap.metadata.MetadataServiceModule;
@@ -121,5 +122,7 @@ public class PreviewHttpHandlerTest {
 
     Assert.assertNotEquals(previewInjector.getInstance(PreviewManager.class),
                            anotherPreviewInjector.getInstance(PreviewManager.class));
+
+    Assert.assertNotNull(anotherPreviewInjector.getInstance(PreviewRuntimeService.class));
   }
 }

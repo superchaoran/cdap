@@ -342,6 +342,7 @@ export default class WrangleData extends Component {
     let headersList = this.state.headersList;
     let columnTypes = this.state.columnTypes;
     let histogram = this.state.histogram;
+    let errors = this.state.errors;
 
     columns.forEach((column, i) => {
       headersList.splice(index+i, 0, column);
@@ -349,12 +350,14 @@ export default class WrangleData extends Component {
       let columnType = inferColumn(data, column);
       columnTypes[column] = columnType;
       histogram[column] = createBucket(data, column, columnType);
+      errors[column] = this.detectNullInColumm(data, column);
     });
 
     return {
       headersList,
       columnTypes,
-      histogram
+      histogram,
+      errors
     };
   }
 
@@ -362,11 +365,13 @@ export default class WrangleData extends Component {
     let headersList = this.state.headersList;
     let columnTypes = this.state.columnTypes;
     let histogram = this.state.histogram;
+    let errors = this.state.errors;
 
     columns.forEach((column) => {
       headersList.splice(headersList.indexOf(column), 1);
       delete columnTypes[column];
       delete histogram[column];
+      delete errors[column];
     });
 
     return {
@@ -393,7 +398,8 @@ export default class WrangleData extends Component {
     let {
       headersList,
       columnTypes,
-      histogram
+      histogram,
+      errors
     } = this.removeColumnMetadata([columnToDrop]);
 
     this.setState({
@@ -403,7 +409,8 @@ export default class WrangleData extends Component {
       history,
       headersList,
       columnTypes,
-      histogram
+      histogram,
+      errors
     });
   }
 
@@ -442,13 +449,19 @@ export default class WrangleData extends Component {
     histogram[newName] = histogram[originalName];
     delete histogram[originalName];
 
+    let errors = this.state.errors;
+    errors[newName] = errors[originalName];
+    delete errors[originalName];
+
     this.setState({
       headersList: headers,
       columnTypes: columnTypes,
       data: formattedData,
       isRename: false,
       activeSelection: newName,
-      history: history
+      history: history,
+      errors,
+      histogram
     });
   }
 
@@ -474,7 +487,8 @@ export default class WrangleData extends Component {
     let {
       headersList,
       columnTypes,
-      histogram
+      histogram,
+      errors
     } = this.addColumnMetadata([firstSplit, secondSplit], index+1, formattedData);
 
     let history = this.state.history;
@@ -490,7 +504,8 @@ export default class WrangleData extends Component {
       history,
       headersList,
       columnTypes,
-      histogram
+      histogram,
+      errors
     });
   }
 
@@ -516,7 +531,8 @@ export default class WrangleData extends Component {
     let {
       headersList,
       columnTypes,
-      histogram
+      histogram,
+      errors
     } = this.addColumnMetadata([columnName], index+1, formattedData);
 
     let history = this.state.history;
@@ -532,7 +548,8 @@ export default class WrangleData extends Component {
       history,
       headersList,
       columnTypes,
-      histogram
+      histogram,
+      errors
     });
   }
 
@@ -588,7 +605,8 @@ export default class WrangleData extends Component {
     let {
       headersList,
       columnTypes,
-      histogram
+      histogram,
+      errors
     } = this.addColumnMetadata([substringColumnName], index+1, formattedData);
 
     let history = this.state.history;
@@ -604,7 +622,8 @@ export default class WrangleData extends Component {
       history,
       headersList,
       columnTypes,
-      histogram
+      histogram,
+      errors
     });
   }
 

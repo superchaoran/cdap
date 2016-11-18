@@ -21,6 +21,7 @@ import co.cask.cdap.common.conf.Constants;
 import co.cask.cdap.common.logging.LoggingContextAccessor;
 import co.cask.cdap.common.logging.ServiceLoggingContext;
 import co.cask.cdap.data2.datafabric.dataset.service.DatasetService;
+import co.cask.cdap.internal.app.namespace.DefaultNamespaceEnsurer;
 import co.cask.cdap.internal.app.runtime.artifact.SystemArtifactLoader;
 import co.cask.cdap.internal.app.services.ApplicationLifecycleService;
 import co.cask.cdap.internal.app.services.ProgramLifecycleService;
@@ -41,18 +42,20 @@ public class PreviewRuntimeService extends AbstractIdleService {
   private final SystemArtifactLoader systemArtifactLoader;
   private final ProgramRuntimeService programRuntimeService;
   private final ProgramLifecycleService programLifecycleService;
+  private final DefaultNamespaceEnsurer namespaceEnsurer;
 
   @Inject
   PreviewRuntimeService(DatasetService datasetService, LogAppenderInitializer logAppenderInitializer,
                         ApplicationLifecycleService applicationLifecycleService,
                         SystemArtifactLoader systemArtifactLoader, ProgramRuntimeService programRuntimeService,
-                        ProgramLifecycleService programLifecycleService) {
+                        ProgramLifecycleService programLifecycleService, DefaultNamespaceEnsurer namespaceEnsurer) {
     this.datasetService = datasetService;
     this.logAppenderInitializer = logAppenderInitializer;
     this.applicationLifecycleService = applicationLifecycleService;
     this.systemArtifactLoader = systemArtifactLoader;
     this.programRuntimeService = programRuntimeService;
     this.programLifecycleService = programLifecycleService;
+    this.namespaceEnsurer = namespaceEnsurer;
   }
 
   @Override
@@ -72,10 +75,13 @@ public class PreviewRuntimeService extends AbstractIdleService {
       programRuntimeService.start(),
       programLifecycleService.start()
     ).get();
+
+    namespaceEnsurer.startAndWait();
   }
 
   @Override
   protected void shutDown() throws Exception {
+    namespaceEnsurer.stopAndWait();
     programRuntimeService.stopAndWait();
     applicationLifecycleService.stopAndWait();
     systemArtifactLoader.stopAndWait();

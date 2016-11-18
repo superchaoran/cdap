@@ -28,7 +28,6 @@ import co.cask.cdap.internal.app.deploy.ProgramTerminator;
 import co.cask.cdap.internal.app.runtime.AbstractListener;
 import co.cask.cdap.internal.app.services.ApplicationLifecycleService;
 import co.cask.cdap.internal.app.services.ProgramLifecycleService;
-import co.cask.cdap.internal.app.services.PropertiesResolver;
 import co.cask.cdap.proto.BasicThrowable;
 import co.cask.cdap.proto.Id;
 import co.cask.cdap.proto.ProgramType;
@@ -45,6 +44,7 @@ import org.apache.twill.common.Threads;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -57,18 +57,15 @@ public class DefaultPreviewManager implements PreviewManager {
   private final ApplicationLifecycleService applicationLifecycleService;
   private final ProgramLifecycleService programLifecycleService;
   private final PreviewStore previewStore;
-  private final PropertiesResolver propertiesResolver;
   private PreviewStatus status;
   private AppRequest request;
 
   @Inject
   DefaultPreviewManager(ApplicationLifecycleService applicationLifecycleService,
-                        ProgramLifecycleService programLifecycleService, PreviewStore previewStore,
-                        PropertiesResolver propertiesResolver) {
+                        ProgramLifecycleService programLifecycleService, PreviewStore previewStore) {
     this.applicationLifecycleService = applicationLifecycleService;
     this.programLifecycleService = programLifecycleService;
     this.previewStore = previewStore;
-    this.propertiesResolver = propertiesResolver;
     this.status = null;
   }
 
@@ -98,9 +95,9 @@ public class DefaultPreviewManager implements PreviewManager {
     }
 
     ProgramId programId = getProgramIdFromRequest(preview, request);
-    Map<String, String> sysArgs = propertiesResolver.getSystemProperties(programId.toId());
-    Map<String, String> userArgs = propertiesResolver.getUserProperties(programId.toId());
-    ProgramRuntimeService.RuntimeInfo runtimeInfo = programLifecycleService.start(programId, sysArgs, userArgs, false);
+    ProgramRuntimeService.RuntimeInfo runtimeInfo = programLifecycleService.start(programId,
+                                                                                  new HashMap<String, String>(),
+                                                                                  new HashMap<String, String>(), false);
 
     runtimeInfo.getController().addListener(new AbstractListener() {
       @Override

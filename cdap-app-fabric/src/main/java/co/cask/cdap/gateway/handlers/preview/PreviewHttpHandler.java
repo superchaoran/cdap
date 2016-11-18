@@ -287,6 +287,7 @@ public class PreviewHttpHandler extends AbstractAppFabricHttpHandler {
     Configuration previewhConf = new Configuration(hConf);
     previewhConf.set(Constants.CFG_LOCAL_DATA_DIR, previewDir.toString());
     previewcConf.setIfUnset(Constants.CFG_DATA_LEVELDB_DIR, previewDir.toString());
+    previewcConf.setBoolean(Constants.Explore.EXPLORE_ENABLED, false);
 
     return Guice.createInjector(
       new ConfigModule(previewcConf, previewhConf),

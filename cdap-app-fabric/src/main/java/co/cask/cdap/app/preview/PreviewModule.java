@@ -21,6 +21,7 @@ import co.cask.cdap.app.deploy.ManagerFactory;
 import co.cask.cdap.app.store.RuntimeStore;
 import co.cask.cdap.app.store.Store;
 import co.cask.cdap.app.store.preview.PreviewStore;
+import co.cask.cdap.common.namespace.NamespaceAdmin;
 import co.cask.cdap.common.namespace.NamespaceQueryAdmin;
 import co.cask.cdap.common.security.UGIProvider;
 import co.cask.cdap.common.security.UnsupportedUGIProvider;
@@ -79,9 +80,11 @@ public class PreviewModule extends PrivateModule {
 
     bind(NamespaceResourceDeleter.class).to(DefaultNamespaceResourceDeleter.class).in(Scopes.SINGLETON);
 
+    bind(NamespaceAdmin.class).to(DefaultNamespaceAdmin.class).in(Scopes.SINGLETON);
     bind(NamespaceQueryAdmin.class).to(DefaultNamespaceAdmin.class).in(Scopes.SINGLETON);
+    expose(NamespaceAdmin.class);
     expose(NamespaceQueryAdmin.class);
-    
+
     bind(PreviewManager.class).to(DefaultPreviewManager.class).in(Scopes.SINGLETON);
     expose(PreviewManager.class);
 

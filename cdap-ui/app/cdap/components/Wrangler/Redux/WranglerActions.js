@@ -14,31 +14,17 @@
  * the License.
  */
 
-import React, {PropTypes} from 'react';
-
-export default function WrangleHistory({historyArray}) {
-  if (historyArray.length === 0) { return null; }
-
-  return (
-    <ul>
-      {
-        historyArray.map((history) => {
-          return (
-            <li key={history.id}>{history.action}</li>
-          );
-        })
-      }
-    </ul>
-  );
-}
-
-WrangleHistory.defaultProps = {
-  historyArray: []
+const WranglerActions = {
+  setData: 'WRANGLER_SET_DATA',
+  dropColumn: 'WRANGLER_DROP_COLUMN',
+  splitColumn: 'WRANGLER_SPLIT_COLUMN',
+  mergeColumn: 'WRANGLER_MERGE_COLUMN',
+  renameColumn: 'WRANGLER_RENAME_COLUMN',
+  upperCaseColumn: 'WRANGLER_UPPER_CASE_COLUMN',
+  lowerCaseColumn: 'WRANGLER_LOWER_CASE_COLUMN',
+  titleCaseColumn: 'WRANGLER_TITLE_CASE_COLUMN',
+  subStringColumn: 'WRANGLER_SUBSTRING_COLUMN',
+  reset: 'WRANGLER_RESET'
 };
 
-WrangleHistory.propTypes = {
-  historyArray: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string,
-    action: PropTypes.string,
-  }))
-};
+export default WranglerActions;

@@ -17,6 +17,10 @@
 import React, { Component } from 'react';
 import Papa from 'papaparse';
 import WrangleData from 'components/Wrangler/WrangleData';
+
+import WranglerActions from 'components/Wrangler/Redux/WranglerActions';
+import WranglerStore from 'components/Wrangler/Redux/WranglerStore';
+
 require('./Wrangler.less');
 
 /**
@@ -145,6 +149,13 @@ Jeremy,Wagner,29782 Farwell Plaza,Wichita,KS,67210`;
     } else {
       formattedData = papa.data;
     }
+
+    WranglerStore.dispatch({
+      type: WranglerActions.setData,
+      payload: {
+        data: formattedData
+      }
+    });
 
     this.setState({
       originalData: formattedData,

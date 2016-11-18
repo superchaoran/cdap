@@ -16,41 +16,29 @@
 
 import React, { Component, PropTypes } from 'react';
 import WrangleHistory from 'components/Wrangler/WrangleHistory';
-import {inferColumn} from 'components/Wrangler/type-inference';
 import classnames from 'classnames';
 import shortid from 'shortid';
 import Histogram from 'components/Wrangler/Histogram';
-import {createBucket} from 'components/Wrangler/data-buckets';
-import {
-  dropColumn,
-  renameColumn,
-  splitColumn,
-  mergeColumn,
-  uppercaseColumn,
-  lowercaseColumn,
-  titlecaseColumn,
-  substringColumn
-} from 'components/Wrangler/column-transforms';
+import WranglerActions from 'components/Wrangler/Redux/WranglerActions';
+import WranglerStore from 'components/Wrangler/Redux/WranglerStore';
 
 export default class WrangleData extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      loading: true,
-      headersList: [],
-      data: this.props.data,
-      errors: {},
-      history: [],
-      histogram: {},
-      columnTypes: {},
+    let wrangler = WranglerStore.getState().wrangler;
+
+    let stateObj = Object.assign({}, wrangler, {
+      loading: false,
       activeSelection: null,
       activeSelectionType: null,
       isRename: false,
       isSplit: false,
       isMerge: false,
-      isSubstring: false,
-    };
+      isSubstring: false
+    });
+
+    this.state = stateObj;
 
     this.dropColumn = this.dropColumn.bind(this);
     this.splitColumnClick = this.splitColumnClick.bind(this);
@@ -61,46 +49,12 @@ export default class WrangleData extends Component {
     this.onMerge = this.onMerge.bind(this);
     this.substringColumnClick = this.substringColumnClick.bind(this);
     this.onSubstring = this.onSubstring.bind(this);
-  }
 
-  componentDidMount() {
-    this.prepData();
-  }
 
-  prepData() {
-    // Detect Null
-    const headersList = Object.keys(this.state.data[0]);
-    const errors = {};
-    let columnTypes = {};
-    let histogram = {};
-
-    headersList.forEach((column) => {
-      let columnType = inferColumn(this.state.data, column);
-      columnTypes[column] = columnType;
-
-      histogram[column] = createBucket(this.state.data, column, columnType);
-      errors[column] = this.detectNullInColumm(this.state.data, column);
+    WranglerStore.subscribe(() => {
+      let state = WranglerStore.getState().wrangler;
+      this.setState(state);
     });
-
-    this.setState({
-      headersList,
-      errors,
-      columnTypes,
-      histogram,
-      loading: false
-    });
-  }
-
-  detectNullInColumm(data, column) {
-    let errorObject = {count: 0};
-    data.forEach((row, index) => {
-      if (row[column] === null || !row[column]) {
-        errorObject[index] = true;
-        errorObject.count++;
-      }
-    });
-
-    return errorObject;
   }
 
   renderActionList() {
@@ -340,79 +294,16 @@ export default class WrangleData extends Component {
     );
   }
 
-  addColumnMetadata(columns, index, data) {
-    let headersList = this.state.headersList;
-    let columnTypes = this.state.columnTypes;
-    let histogram = this.state.histogram;
-    let errors = this.state.errors;
-
-    columns.forEach((column, i) => {
-      headersList.splice(index+i, 0, column);
-
-      let columnType = inferColumn(data, column);
-      columnTypes[column] = columnType;
-      histogram[column] = createBucket(data, column, columnType);
-      errors[column] = this.detectNullInColumm(data, column);
-    });
-
-    return {
-      headersList,
-      columnTypes,
-      histogram,
-      errors
-    };
-  }
-
-  removeColumnMetadata(columns) {
-    let headersList = this.state.headersList;
-    let columnTypes = this.state.columnTypes;
-    let histogram = this.state.histogram;
-    let errors = this.state.errors;
-
-    columns.forEach((column) => {
-      headersList.splice(headersList.indexOf(column), 1);
-      delete columnTypes[column];
-      delete histogram[column];
-      delete errors[column];
-    });
-
-    return {
-      headersList,
-      columnTypes,
-      histogram
-    };
-  }
-
 
   // DROP COLUMN
   dropColumn() {
     const columnToDrop = this.state.activeSelection;
 
-    let formattedData = dropColumn(this.state.data, columnToDrop);
-
-    let history = this.state.history;
-    history.push({
-      id: shortid.generate(),
-      action: 'DROP COLUMN',
-      payload: [columnToDrop]
-    });
-
-    let {
-      headersList,
-      columnTypes,
-      histogram,
-      errors
-    } = this.removeColumnMetadata([columnToDrop]);
-
-    this.setState({
-      activeSelection: null,
-      activeSelectionType: null,
-      data: formattedData,
-      history,
-      headersList,
-      columnTypes,
-      histogram,
-      errors
+    WranglerStore.dispatch({
+      type: WranglerActions.dropColumn,
+      payload: {
+        activeColumn: columnToDrop
+      }
     });
   }
 
@@ -431,39 +322,12 @@ export default class WrangleData extends Component {
     const originalName = this.state.activeSelection;
     const newName = this.renameInput.value;
 
-    let formattedData = renameColumn(this.state.data, originalName, newName);
-
-    let headers = this.state.headersList;
-    headers[headers.indexOf(originalName)] = newName;
-
-    let history = this.state.history;
-    history.push({
-      id: shortid.generate(),
-      action: 'RENAME',
-      payload: [originalName, newName]
-    });
-
-    let columnTypes = this.state.columnTypes;
-    columnTypes[newName] = columnTypes[originalName];
-    delete columnTypes[originalName];
-
-    let histogram = this.state.histogram;
-    histogram[newName] = histogram[originalName];
-    delete histogram[originalName];
-
-    let errors = this.state.errors;
-    errors[newName] = errors[originalName];
-    delete errors[originalName];
-
-    this.setState({
-      headersList: headers,
-      columnTypes: columnTypes,
-      data: formattedData,
-      isRename: false,
-      activeSelection: newName,
-      history: history,
-      errors,
-      histogram
+    WranglerStore.dispatch({
+      type: WranglerActions.renameColumn,
+      payload: {
+        activeColumn: originalName,
+        newName: newName
+      }
     });
   }
 
@@ -483,31 +347,14 @@ export default class WrangleData extends Component {
     const secondSplit = this.secondSplit.value;
     const columnToSplit = this.state.activeSelection;
 
-    let formattedData = splitColumn(this.state.data, delimiter, columnToSplit, firstSplit, secondSplit);
-
-    const index = this.state.headersList.indexOf(columnToSplit);
-    let {
-      headersList,
-      columnTypes,
-      histogram,
-      errors
-    } = this.addColumnMetadata([firstSplit, secondSplit], index+1, formattedData);
-
-    let history = this.state.history;
-    history.push({
-      id: shortid.generate(),
-      action: 'SPLIT',
-      payload: [columnToSplit]
-    });
-
-    this.setState({
-      isSplit: false,
-      data: formattedData,
-      history,
-      headersList,
-      columnTypes,
-      histogram,
-      errors
+    WranglerStore.dispatch({
+      type: WranglerActions.splitColumn,
+      payload: {
+        activeColumn: columnToSplit,
+        firstSplit,
+        secondSplit,
+        delimiter
+      }
     });
   }
 
@@ -525,33 +372,16 @@ export default class WrangleData extends Component {
     const mergeWith = this.mergeWith.value;
     const columnToMerge = this.state.activeSelection;
     const joinBy = this.joinBy.value;
-    const columnName = this.mergedColumnName.value;
+    const mergedColumnName = this.mergedColumnName.value;
 
-    let formattedData = mergeColumn(this.state.data, joinBy, columnToMerge, mergeWith, columnName);
-
-    const index = this.state.headersList.indexOf(columnToMerge);
-    let {
-      headersList,
-      columnTypes,
-      histogram,
-      errors
-    } = this.addColumnMetadata([columnName], index+1, formattedData);
-
-    let history = this.state.history;
-    history.push({
-      id: shortid.generate(),
-      action: 'MERGE',
-      payload: [columnToMerge, mergeWith]
-    });
-
-    this.setState({
-      isMerge: false,
-      data: formattedData,
-      history,
-      headersList,
-      columnTypes,
-      histogram,
-      errors
+    WranglerStore.dispatch({
+      type: WranglerActions.mergeColumn,
+      payload: {
+        activeColumn: columnToMerge,
+        joinBy,
+        mergedColumnName,
+        mergeWith
+      }
     });
   }
 
@@ -559,29 +389,24 @@ export default class WrangleData extends Component {
   transformCase(type) {
     const columnToTransform = this.state.activeSelection;
 
-    let formattedData;
+    let actionType;
     switch (type) {
       case 'UPPERCASE':
-        formattedData = uppercaseColumn(this.state.data, columnToTransform);
+        actionType = WranglerActions.upperCaseColumn;
         break;
       case 'LOWERCASE':
-        formattedData = lowercaseColumn(this.state.data, columnToTransform);
+        actionType = WranglerActions.lowerCaseColumn;
         break;
       case 'TITLECASE':
-        formattedData = titlecaseColumn(this.state.data, columnToTransform);
+        actionType = WranglerActions.titleCaseColumn;
         break;
     }
 
-    let history = this.state.history;
-    history.push({
-      id: shortid.generate(),
-      action: type,
-      payload: [columnToTransform]
-    });
-
-    this.setState({
-      data: formattedData,
-      history: history
+    WranglerStore.dispatch({
+      type: actionType,
+      payload: {
+        activeColumn: columnToTransform
+      }
     });
   }
 
@@ -599,33 +424,16 @@ export default class WrangleData extends Component {
     const columnToSub = this.state.activeSelection;
     const beginIndex = this.state.substringBeginIndex;
     const endIndex = this.state.substringEndIndex;
-    const substringColumnName = this.state.substringColumnName;
+    const columnName = this.state.substringColumnName;
 
-    let formattedData = substringColumn(this.state.data, columnToSub, beginIndex, endIndex, substringColumnName);
-
-    const index = this.state.headersList.indexOf(columnToSub);
-    let {
-      headersList,
-      columnTypes,
-      histogram,
-      errors
-    } = this.addColumnMetadata([substringColumnName], index+1, formattedData);
-
-    let history = this.state.history;
-    history.push({
-      id: shortid.generate(),
-      action: 'SUBSTRING',
-      payload: [columnToSub]
-    });
-
-    this.setState({
-      isSubstring: false,
-      data: formattedData,
-      history,
-      headersList,
-      columnTypes,
-      histogram,
-      errors
+    WranglerStore.dispatch({
+      type: WranglerActions.subStringColumn,
+      payload: {
+        activeColumn: columnToSub,
+        beginIndex,
+        endIndex,
+        columnName
+      }
     });
   }
 

@@ -20,7 +20,7 @@ export default function WrangleHistory({historyArray}) {
   if (historyArray.length === 0) { return null; }
 
   return (
-    <ul>
+    <ol>
       {
         historyArray.map((history) => {
           return (
@@ -28,7 +28,7 @@ export default function WrangleHistory({historyArray}) {
           );
         })
       }
-    </ul>
+    </ol>
   );
 }
 

@@ -505,7 +505,7 @@ export default class WrangleData extends Component {
             <table className="table table-bordered">
               <thead>
                 <tr>
-                  <th className="index-column"></th>
+                  <th className="index-column">#</th>
                   {
                     headers.map((head) => {
                       return (

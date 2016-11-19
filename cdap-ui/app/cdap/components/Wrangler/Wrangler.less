@@ -16,6 +16,8 @@
 
 @error-color: #e74c3c;
 
+.error-text { color: @error-color; }
+
 .wrangler-container {
   margin-bottom: 60px;
 
@@ -128,6 +130,14 @@
       overflow-y: auto;
 
       .data-table { overflow-x: auto; }
+
+      .column-actions {
+        margin: 0 10px;
+
+        &:first-child { margin-left: 0; }
+        &:last-child { margin-right: 0; }
+
+      }
     }
   }
 

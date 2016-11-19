@@ -105,7 +105,7 @@ const wrangler = (state = defaultAction, action = defaultInitialState) => {
       return defaultInitialState;
 
     default:
-      return state;
+      return Object.assign({}, state);
   }
 
   return Object.assign({}, state, stateCopy, addHistory(stateCopy, action.type, action.payload));

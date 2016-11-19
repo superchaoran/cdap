@@ -127,7 +127,7 @@ final class QueryResultsBodyProducer extends BodyProducer {
         printWriter.append(',');
       }
       // Using GSON toJson will serialize objects - in particular, strings will be quoted
-      printWriter.append(GSON.toJson(o));
+      GSON.toJson(o, printWriter);
     }
     writer.println();
   }

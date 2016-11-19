@@ -24,9 +24,12 @@ import java.util.Map;
 /**
  * A class which provides {@link DataTracerFactory} based on the {@link ApplicationId}
  */
-public class DataTracerFactoryProvider {
+public final class DataTracerFactoryProvider {
   private static final DataTracerFactory DEFAULT_FACTORY = new NoopDataTracerFactory();
   private static final Map<ApplicationId, DataTracerFactory> FACTORY_MAP = new HashMap<>();
+
+  private DataTracerFactoryProvider() {
+  }
 
   public static synchronized void setDataTracerFactory(ApplicationId applicationId,
                                                        DataTracerFactory dataTracerFactory) {
@@ -35,5 +38,9 @@ public class DataTracerFactoryProvider {
 
   public static DataTracerFactory get(ApplicationId applicationId) {
     return FACTORY_MAP.containsKey(applicationId) ? FACTORY_MAP.get(applicationId) : DEFAULT_FACTORY;
+  }
+
+  public static synchronized  void removeDataTracerFactory(ApplicationId applicationId) {
+    FACTORY_MAP.remove(applicationId);
   }
 }

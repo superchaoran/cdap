@@ -396,9 +396,4 @@ public abstract class AbstractContext extends AbstractServiceDiscoverer
   public DataTracer getDataTracer(String dataTracerName) {
     return dataTracerFactory.getDataTracer(program.getId().getParent(), dataTracerName);
   }
-
-  @Inject(optional = true)
-  private void setDataTracerFactory(DataTracerFactory dataTracerFactory) {
-    this.dataTracerFactory = dataTracerFactory;
-  }
 }

@@ -16,8 +16,7 @@
 
 .schema-editor {
   width: 600px;
-  .schema-header,
-  .schema-body {
+  .schema-header{
     padding: 5px 0;
     border-bottom: 1px solid #ccc;
     .field-name {
@@ -36,6 +35,31 @@
     .field-isnull {
       font-weight: bolder;
       display: inline-block;
+    }
+  }
+  .schema-body {
+    .field-name {
+      width: ~"calc(100% - 80px - 75px)";
+      width: ~"-moz-calc(100% - 80px - 75px)";
+      width: ~"-webkit-calc(100% - 80px - 75px)";
+    }
+    .field-type {
+      width: 80px;
+      padding: 0 5px;
+      vertical-align: bottom;
+    }
+    .field-isnull {
+      width: 75px;
+    }
+    .field-name,
+    .field-type,
+    .field-isnull {
+      display: inline-block;
+    }
+    .form-control {
+      padding: 5px;
+      height: 25px;
+      margin: 2px 0 0 0;
     }
   }
 }

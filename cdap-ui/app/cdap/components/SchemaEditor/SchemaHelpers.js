@@ -73,7 +73,7 @@ function getParsedSchema(schema) {
     type: 'string',
     displayType: 'string',
     nullable: false,
-    id: uuid.v4(),
+    id: 'a' + uuid.v4().split('-').join(''),
     nested: false
   };
   const isEmptySchema = () => {
@@ -95,7 +95,7 @@ function getParsedSchema(schema) {
     let partialObj = parseType(type);
 
     return Object.assign({}, partialObj, {
-      id: uuid.v4(),
+      id: 'a' + uuid.v4().split('-').join(''),
       name: field.getName()
     });
 

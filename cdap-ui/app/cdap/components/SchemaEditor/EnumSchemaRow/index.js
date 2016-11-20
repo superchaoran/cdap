@@ -33,6 +33,12 @@ export default class EnumSchemaRow extends Component {
         symbols: ['']
       };
     }
+    setTimeout(() => {
+      this.props.onChange({
+        type: 'enum',
+        symbols: this.state.symbols
+      });
+    });
   }
   onSymbolChange(index, e) {
     let symbols = this.state.symbols;

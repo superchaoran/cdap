@@ -36,21 +36,21 @@ export default class RecordSchemaRow extends Component{
       });
       this.state = {
         type: 'record',
-        name: uuid.v4(),
+        name: 'a' +  uuid.v4().split('-').join(''),
         displayFields,
         parsedFields
       };
     } else {
       this.state = {
         type: 'record',
-        name: uuid.v4(),
+        name: 'a' +  uuid.v4().split('-').join(''),
         displayFields: [
           {
             name: '',
             type: 'string',
             displayType: 'string',
             nullable: false,
-            id: uuid.v4(),
+            id: 'a' + uuid.v4().split('-').join(''),
             nested: false
           }
         ],
@@ -63,10 +63,13 @@ export default class RecordSchemaRow extends Component{
       };
     }
     setTimeout(() => {
+      let parsedFields = this.state
+        .parsedFields
+        .filter(field => field.name && field.type);
       props.onChange({
         type: 'record',
         name: this.state.name,
-        fields: this.state.parsedFields
+        fields: parsedFields
       });
     });
   }
@@ -79,7 +82,14 @@ export default class RecordSchemaRow extends Component{
       parsedFields,
       displayFields
     }, () => {
-      this.props.onChange(parsedFields);
+      let parsedFields = this.state
+        .parsedFields
+        .filter(field => field.name && field.type);
+      this.props.onChange({
+        name: 'a' + uuid.v4().split('-').join(''),
+        type: 'record',
+        fields: parsedFields
+      });
     });
   }
   onTypeChange(index, e) {
@@ -91,6 +101,15 @@ export default class RecordSchemaRow extends Component{
     this.setState({
       displayFields,
       parsedFields
+    }, () => {
+      let parsedFields = this.state
+        .parsedFields
+        .filter(field => field.name && field.type);
+      this.props.onChange({
+        name: 'a' + uuid.v4().split('-').join(''),
+        type: 'record',
+        fields: parsedFields
+      });
     });
   }
   onChange(index, fieldType) {
@@ -99,10 +118,13 @@ export default class RecordSchemaRow extends Component{
     this.setState({
       parsedFields
     }, () => {
+      let parsedFields = this.state
+        .parsedFields
+        .filter(field => field.name && field.type);
       this.props.onChange({
-        name: uuid.v4(),
+        name: 'a' + uuid.v4().split('-').join(''),
         type: 'record',
-        fields: this.state.parsedFields
+        fields: parsedFields
       });
     });
   }
@@ -119,18 +141,20 @@ export default class RecordSchemaRow extends Component{
                       className="schema-row"
                       key={index}
                     >
-                      <Input
-                        className="field-name"
-                        value={row.name}
-                        onChange={this.onNameChange.bind(this, index)}
-                      />
-                      <SelectWithOptions
-                        className="field-type"
-                        options={SCHEMA_TYPES.types}
-                        value={row.displayType}
-                        onChange={this.onTypeChange.bind(this, index)}
-                      />
-                      <div className="field-isnull">TBD</div>
+                      <div className="field-name">
+                        <Input
+                          value={row.name}
+                          onChange={this.onNameChange.bind(this, index)}
+                        />
+                      </div>
+                      <div className="field-type">
+                        <SelectWithOptions
+                          options={SCHEMA_TYPES.types}
+                          value={row.displayType}
+                          onChange={this.onTypeChange.bind(this, index)}
+                        />
+                      </div>
+                      <div className="field-isnull text-center">TBD</div>
                       {
                         checkComplexType(row.displayType) ?
                           <AbstractSchemaRow

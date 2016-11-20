@@ -24,6 +24,7 @@ const WranglerActions = {
   lowerCaseColumn: 'WRANGLER_LOWER_CASE_COLUMN',
   titleCaseColumn: 'WRANGLER_TITLE_CASE_COLUMN',
   subStringColumn: 'WRANGLER_SUBSTRING_COLUMN',
+  sortColumn: 'WRANGLER_SORT_COLUMN',
   reset: 'WRANGLER_RESET'
 };
 

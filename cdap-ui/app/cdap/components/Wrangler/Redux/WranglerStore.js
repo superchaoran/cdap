@@ -42,7 +42,9 @@ const defaultInitialState = {
     errors: {},
     history: [],
     histogram: {},
-    columnTypes: {}
+    columnTypes: {},
+    sort: null,
+    sortAscending: true
   }
 };
 
@@ -101,6 +103,11 @@ const wrangler = (state = defaultAction, action = defaultInitialState) => {
       stateCopy = Object.assign({}, stateCopy, data);
 
       break;
+    case WranglerActions.sortColumn:
+      return Object.assign({}, state, {
+        sort: action.payload.activeColumn,
+        sortAscending: state.sort && state.sort === action.payload.activeColumn ? !state.sortAscending : true
+      });
     case WranglerActions.reset:
       return defaultInitialState;
 

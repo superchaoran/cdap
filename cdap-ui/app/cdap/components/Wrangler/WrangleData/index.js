@@ -20,9 +20,10 @@ import classnames from 'classnames';
 import shortid from 'shortid';
 import Histogram from 'components/Wrangler/Histogram';
 import WranglerStore from 'components/Wrangler/Redux/WranglerStore';
-
+import WranglerActions from 'components/Wrangler/Redux/WranglerActions';
 import RenameAction from 'components/Wrangler/ColumnActions/RenameAction';
 import ColumnActionsDropdown from 'components/Wrangler/ColumnActionsDropdown';
+import orderBy from 'lodash/orderBy';
 
 export default class WrangleData extends Component {
   constructor(props) {
@@ -33,18 +34,66 @@ export default class WrangleData extends Component {
     let stateObj = Object.assign({}, wrangler, {
       loading: false,
       activeSelection: null,
-      activeSelectionType: null,
-      isSplit: false,
-      isMerge: false,
-      isSubstring: false
+      showHistogram: false
     });
 
     this.state = stateObj;
+
+    this.onSort = this.onSort.bind(this);
+    this.onHistogramDisplayClick = this.onHistogramDisplayClick.bind(this);
 
     WranglerStore.subscribe(() => {
       let state = WranglerStore.getState().wrangler;
       this.setState(state);
     });
+  }
+
+  onColumnClick(column) {
+    this.setState({activeSelection: column});
+  }
+
+  onSort() {
+    WranglerStore.dispatch({
+      type: WranglerActions.sortColumn,
+      payload: {
+        activeColumn: this.state.activeSelection
+      }
+    });
+  }
+
+  onHistogramDisplayClick() {
+    this.setState({showHistogram: !this.state.showHistogram});
+  }
+
+  renderHistogramRow() {
+    if (!this.state.showHistogram) { return null; }
+
+    const headers = this.state.headersList;
+
+    return (
+      <tr>
+        <th className="index-column">
+          <span className="fa fa-bar-chart"></span>
+        </th>
+        {
+          headers.map((head) => {
+            return (
+              <th
+                key={head}
+                className={classnames({
+                  active: this.state.activeSelection === head
+                })}
+              >
+                <Histogram
+                  data={this.state.histogram[head].data}
+                  labels={this.state.histogram[head].labels}
+                />
+              </th>
+            );
+          })
+        }
+      </tr>
+    );
   }
 
   render() {
@@ -60,8 +109,14 @@ export default class WrangleData extends Component {
     }
 
     const headers = this.state.headersList;
-    const data = this.state.data;
+    const originalData = this.state.data;
     const errors = this.state.errors;
+
+    let data = originalData;
+    if (this.state.sort) {
+      let sortOrder = this.state.sortAscending ? 'asc' : 'desc';
+      data = orderBy(originalData, [this.state.sort], [sortOrder]);
+    }
 
     const errorCount = headers.reduce((prev, curr) => {
       let count = errors[curr] ? errors[curr].count : 0;
@@ -79,6 +134,43 @@ export default class WrangleData extends Component {
             <span className="fa fa-filter"></span>
           </div>
 
+          <div
+            className={classnames('transform-item', { disabled: !this.state.activeSelection})}
+            onClick={this.onSort}
+          >
+            <span className="fa fa-long-arrow-up" />
+            <span className="fa fa-long-arrow-down" />
+            <span className="transform-item-text">Sort</span>
+
+            <span className="pull-right sort-indicator">
+              <span className={classnames('fa', {
+                'fa-long-arrow-down': this.state.sortAscending,
+                'fa-long-arrow-up': !this.state.sortAscending
+              })} />
+            </span>
+          </div>
+
+          <div
+            className={classnames('transform-item', { disabled: !this.state.activeSelection})}
+            onClick={this.onFilter}
+          >
+            <span className="fa fa-font"></span>
+            <span className="transform-item-text">Text Filter</span>
+
+          </div>
+
+          <div
+            className="transform-item"
+            onClick={this.onHistogramDisplayClick}
+          >
+            <span className="fa fa-bar-chart"></span>
+            <span className="transform-item-text">
+              <span>{ this.state.showHistogram ? 'Hide' : 'Show'}</span>
+              <span>Histogram</span>
+            </span>
+
+          </div>
+
           <h4>History</h4>
 
           <WrangleHistory
@@ -90,12 +182,12 @@ export default class WrangleData extends Component {
         <div className="wrangle-results">
           <div className="wrangler-data-metrics">
             <div className="metric-block">
-              <h3>{this.state.data.length}</h3>
+              <h3 className="text-success">{this.state.data.length}</h3>
               <h5>Rows</h5>
             </div>
 
             <div className="metric-block">
-              <h3>{this.state.headersList.length}</h3>
+              <h3 className="text-success">{this.state.headersList.length}</h3>
               <h5>Columns</h5>
             </div>
 
@@ -109,43 +201,55 @@ export default class WrangleData extends Component {
             <table className="table table-bordered">
               <thead>
                 <tr>
-                  <th className="index-column">#</th>
+                  <th className="index-column text-center">#</th>
                   {
                     headers.map((head) => {
                       return (
-                        <th key={head}>
+                        <th
+                          className={classnames('top-header', {
+                            active: this.state.activeSelection === head
+                          })}
+                          key={head}
+                        >
                           <RenameAction column={head} />
-                          {head} ({this.state.columnTypes[head]})
+                          <span
+                            className="header-text"
+                            onClick={this.onColumnClick.bind(this, head)}
+                          >
+                            {head}
+                          </span>
                           {errors[head] && errors[head].count ? errorCircle : null}
-
                           <ColumnActionsDropdown column={head} />
                         </th>
                       );
                     })
                   }
                 </tr>
-                <tr>
-                  <th></th>
+                <tr className="column-type-row">
+                  <th className="index-column"></th>
                   {
                     headers.map((head) => {
                       return (
-                        <th key={head}>
-                          <Histogram
-                            data={this.state.histogram[head].data}
-                            labels={this.state.histogram[head].labels}
-                          />
+                        <th
+                          className={classnames('text-center', {
+                            active: this.state.activeSelection === head
+                          })}
+                          key={head}
+                        >
+                          {this.state.columnTypes[head]}
                         </th>
                       );
                     })
                   }
                 </tr>
+                {this.renderHistogramRow()}
               </thead>
 
               <tbody>
                 { data.map((row, index) => {
                   return (
                     <tr key={shortid.generate()}>
-                      <td className="index-column">
+                      <td className="index-column text-center">
                         <span className="content">{index+1}</span>
                       </td>
                       {

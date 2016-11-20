@@ -18,7 +18,6 @@ import React, {PropTypes, Component} from 'react';
 import {parseType} from 'components/SchemaEditor/SchemaHelpers';
 import {Input} from 'reactstrap';
 require('./EnumSchemaRow.less');
-// import uuid from 'node-uuid';
 
 export default class EnumSchemaRow extends Component {
   constructor(props) {

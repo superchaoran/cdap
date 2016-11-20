@@ -30,21 +30,29 @@ export default class MapSchemaRow extends Component {
       this.state = {
         name: rowType.name,
         keysType: rowType.type.getKeysType().getTypeName(),
-        valuesTypes: rowType.type.getValuesType().getTypeName()
+        parsedKeysType: rowType.type.getKeysType().getTypeName(),
+        keysTypeNullable: rowType.nullable,
+        valuesTypes: rowType.type.getValuesType().getTypeName(),
+        parsedValuesType: rowType.type.getValuesType().getTypeName(),
+        valuesTypeNullable: rowType.nullable
       };
     } else {
       this.state = {
         name: props.row.name,
         keysType: 'string',
+        parsedKeysType: 'string',
+        keysTypeNullable: false,
         valuesType: 'string',
+        parsedValuesType: 'string',
+        valuesTypeNullable: false,
         type: props.row.type || null
       };
     }
     setTimeout(() => {
       this.props.onChange({
         type: 'map',
-        keys: this.state.keysType,
-        values: this.state.valuesType
+        keys: Array.isArray(this.state.keysTypeNullable) ? [this.state.parsedKeysType, null] : this.state.parsedKeysType,
+        values: Array.isArray(this.state.valuesTypeNullable) ? [this.state.parsedValuesType, null] : this.state.parsedValuesType
       });
     });
     this.onKeysTypeChange = this.onKeysTypeChange.bind(this);
@@ -65,17 +73,39 @@ export default class MapSchemaRow extends Component {
     });
   }
   onKeysChange(keysState) {
-    this.props.onChange({
-      type: 'map',
-      keys: keysState,
-      values: this.state.valuesType
+    this.setState({
+      parsedKeysType: keysState
+    }, () => {
+      this.props.onChange({
+        type: 'map',
+        keys: this.state.keysTypeNullable ? [this.state.parsedKeysType, null] : this.state.parsedKeysType,
+        values: this.state.valuesTypeNullable ? [this.state.parsedValuesType, null] : this.state.parsedValuesType
+      });
     });
   }
   onValuesChange(valuesState) {
-    this.props.onChange({
-      type: 'map',
-      keys: this.state.keysType,
-      values: valuesState
+    this.setState({
+      parsedValuesType: valuesState
+    }, () => {
+      this.props.onChange({
+        type: 'map',
+        keys: this.state.keysTypeNullable ? [this.state.parsedKeysType, null] : this.state.parsedKeysType,
+        values: this.state.valuesTypeNullable ? [this.state.parsedValuesType, null] : this.state.parsedValuesType
+      });
+    });
+  }
+  onKeysTypeNullableChange(e) {
+    this.setState({
+      keysTypeNullable: e.target.checked
+    }, () => {
+      this.onKeysChange(this.state.parsedKeysType);
+    });
+  }
+  onValuesTypeNullableChange(e) {
+    this.setState({
+      valuesTypeNullable: e.target.checked
+    }, () => {
+      this.onValuesChange(this.state.parsedValuesType);
     });
   }
   render() {
@@ -96,6 +126,8 @@ export default class MapSchemaRow extends Component {
               <div className="btn btn-link">
                 <Input
                   type="checkbox"
+                  value={this.state.keysTypeNullable}
+                  onChange={this.onKeysTypeNullableChange.bind(this)}
                 />
               </div>
             </div>
@@ -123,6 +155,8 @@ export default class MapSchemaRow extends Component {
               <div className="btn btn-link">
                 <Input
                   type="checkbox"
+                  value={this.state.valuesTypeNullable}
+                  onChange={this.onValuesTypeNullableChange.bind(this)}
                 />
               </div>
             </div>

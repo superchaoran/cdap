@@ -32,7 +32,8 @@ export default class UnionSchemaRow extends Component {
       let displayTypes = parsedTypes.map(type => {
         return {
           type: type.displayType,
-          id: uuid.v4()
+          id: uuid.v4(),
+          nullable: type.nullable
         };
       });
 
@@ -45,7 +46,8 @@ export default class UnionSchemaRow extends Component {
         displayTypes: [
           {
             type: 'string',
-            id: uuid.v4()
+            id: uuid.v4(),
+            nullable: false
           }
         ],
         parsedTypes: [
@@ -58,11 +60,37 @@ export default class UnionSchemaRow extends Component {
     });
     this.onTypeChange = this.onTypeChange.bind(this);
   }
+  onNullableChange(index, e) {
+    let displayTypes = this.state.displayTypes;
+    let parsedTypes = this.state.parsedTypes;
+    displayTypes[index].nullable = e.target.checked;
+    if (e.target.checked) {
+      parsedTypes[index] = [
+        parsedTypes[index],
+        null
+      ];
+    } else {
+      parsedTypes[index] = parsedTypes[index][0];
+    }
+    this.setState({
+      displayTypes,
+      parsedTypes
+    }, () => {
+      this.props.onChange(this.state.parsedTypes);
+    });
+  }
   onTypeChange(index, e) {
     let displayTypes = this.state.displayTypes;
     displayTypes[index].type = e.target.value;
     let parsedTypes = this.state.parsedTypes;
-    parsedTypes[index] = e.target.value;
+    if (displayTypes[index].nullable) {
+      parsedTypes[index] = [
+        e.target.value,
+        null
+      ];
+    } else {
+      parsedTypes[index] = e.target.value;
+    }
     this.setState({
       displayTypes,
       parsedTypes
@@ -77,7 +105,8 @@ export default class UnionSchemaRow extends Component {
       ...displayTypes.slice(0, index + 1),
       {
         type: 'string',
-        id: uuid.v4()
+        id: uuid.v4(),
+        nullable: false
       },
       ...displayTypes.slice(index + 1, displayTypes.length)
     ];
@@ -107,7 +136,15 @@ export default class UnionSchemaRow extends Component {
   }
   onChange(index, parsedType) {
     let parsedTypes = this.state.parsedTypes;
-    parsedTypes[index] = parsedType;
+    let displayTypes = this.state.displayTypes;
+    if (displayTypes[index].nullable) {
+      parsedTypes[index] = [
+        parsedType,
+        null
+      ];
+    } else {
+      parsedTypes[index] = parsedType;
+    }
     this.setState({parsedTypes}, () => {
       this.props.onChange(this.state.parsedTypes);
     });
@@ -130,6 +167,8 @@ export default class UnionSchemaRow extends Component {
                     <div className="btn btn-link">
                       <Input
                         type="checkbox"
+                        value={displayType.nullable}
+                        onChange={this.onNullableChange.bind(this, index)}
                       />
                     </div>
                     <div className="btn btn-link">

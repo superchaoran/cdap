@@ -55,31 +55,31 @@ let createStoreInstance = () => {
           {
             "name": "name",
             "type": "string"
-          },
-          {
-            "name": "email",
-            "type": [
-              "string",
-              "int"
-            ]
-          },
-          {
-            "name": "userrecord",
-            "type": {
-              "name": "aeba2b7ee9d4b4a428d0fa01371f3d681",
-              "type": "record",
-              "fields": [
-                {
-                  "name": "userid",
-                  "type": "string"
-                },
-                {
-                  "name": "password",
-                  "type": "string"
-                }
-              ]
-            }
           }
+          // {
+          //   "name": "email",
+          //   "type": [
+          //     "string",
+          //     "int"
+          //   ]
+          // },
+          // {
+          //   "name": "userrecord",
+          //   "type": {
+          //     "name": "aeba2b7ee9d4b4a428d0fa01371f3d681",
+          //     "type": "record",
+          //     "fields": [
+          //       {
+          //         "name": "userid",
+          //         "type": "string"
+          //       },
+          //       {
+          //         "name": "password",
+          //         "type": "string"
+          //       }
+          //     ]
+          //   }
+          // }
         ]
       }
     }

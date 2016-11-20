@@ -28,12 +28,18 @@ export default class ArraySchemaRow extends Component{
     if (typeof props.row.type === 'object') {
       let item = parseType(props.row.type.getItemsType());
       this.state = {
-        displayType: item.displayType,
+        displayType: {
+          type: item.displayType,
+          nullable: item.nullable
+        },
         parsedType: props.row.type.getItemsType()
       };
     } else {
       this.state = {
-        displayType: props.row.type || 'string',
+        displayType: {
+          type: props.row.type || 'string',
+          nullable: false
+        },
         parsedType: props.row.type || 'string'
       };
     }
@@ -41,25 +47,61 @@ export default class ArraySchemaRow extends Component{
     setTimeout(() => {
       props.onChange({
         type: 'array',
-        items: this.state.displayType
+        items: this.state.displayType.type
       });
     });
   }
   onTypeChange(e) {
     this.setState({
-      displayType: e.target.value
+      displayType: {
+        type: e.target.value,
+        nullable: this.state.displayType.nullable
+      }
     }, () => {
       this.props.onChange({
         type: 'array',
-        items: this.state.displayType
+        items: this.state.displayType.type
       });
     });
   }
-  onChange(itemsState) {
-    this.props.onChange({
-      type: 'array',
-      items: itemsState
+  onNullableChange(e) {
+    this.setState({
+      displayType: {
+        type: this.state.displayType.type,
+        nullable: e.target.checked
+      }
+    }, () => {
+      if (this.state.displayType.nullable) {
+        this.props.onChange({
+          type: 'array',
+          items: [
+            this.state.displayType.type,
+            null
+          ]
+        });
+      } else {
+        this.props.onChange({
+          type: 'array',
+          items: this.state.displayType.type
+        });
+      }
     });
+  }
+  onChange(itemsState) {
+    if (this.state.displayType.nullable) {
+      this.props.onChange({
+        type: 'array',
+        items: [
+          itemsState,
+          null
+        ]
+      });
+    } else {
+      this.props.onChange({
+        type: 'array',
+        items: itemsState
+      });
+    }
   }
   render() {
     return (
@@ -68,7 +110,7 @@ export default class ArraySchemaRow extends Component{
           <div className="field-name">
             <SelectWithOptions
               options={SCHEMA_TYPES.types}
-              value={this.state.displayType}
+              value={this.state.displayType.type}
               onChange={this.onTypeChange}
             />
           </div>
@@ -77,14 +119,16 @@ export default class ArraySchemaRow extends Component{
             <div className="btn btn-link">
               <Input
                 type="checkbox"
+                value={this.state.displayType.nullable}
+                onChange={this.onNullableChange.bind(this)}
               />
             </div>
           </div>
         </div>
         {
-          checkComplexType(this.state.displayType) ?
+          checkComplexType(this.state.displayType.type) ?
             <AbstractSchemaRow
-              row={this.state.displayType}
+              row={this.state.displayType.type}
               onChange={this.onChange.bind(this)}
             />
           :

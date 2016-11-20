@@ -144,7 +144,42 @@ export default class RecordSchemaRow extends Component{
     displayFields[index].displayType = e.target.value;
     displayFields[index].type = e.target.value;
     let parsedFields = this.state.parsedFields;
-    parsedFields[index].type = e.target.value;
+    if (Array.isArray(parsedFields[index].type)) {
+      parsedFields[index].type = [
+        e.target.value,
+        null
+      ];
+    } else {
+      parsedFields[index].type = e.target.value;
+    }
+    this.setState({
+      displayFields,
+      parsedFields
+    }, () => {
+      let parsedFields = this.state
+        .parsedFields
+        .filter(field => field.name && field.type);
+      this.props.onChange({
+        name: this.state.name,
+        type: 'record',
+        fields: parsedFields
+      });
+    });
+  }
+  onNullableChange(index, e) {
+    let displayFields = this.state.displayFields;
+    let parsedFields = this.state.parsedFields;
+    displayFields[index].nullable = e.target.checked;
+    if (e.target.checked) {
+      parsedFields[index].type = [
+        parsedFields[index].type,
+        null
+      ];
+    } else {
+      if (Array.isArray(parsedFields[index].type)) {
+        parsedFields[index].type = parsedFields[index].type[0];
+      }
+    }
     this.setState({
       displayFields,
       parsedFields
@@ -161,7 +196,16 @@ export default class RecordSchemaRow extends Component{
   }
   onChange(index, fieldType) {
     let parsedFields = this.state.parsedFields;
-    parsedFields[index].type = fieldType;
+    let displayFields = this.state.displayFields;
+
+    if (displayFields[index].nullable) {
+      parsedFields[index].type = [
+        fieldType,
+        null
+      ];
+    } else {
+      parsedFields[index].type = fieldType;
+    }
     this.setState({
       parsedFields
     }, () => {
@@ -205,6 +249,8 @@ export default class RecordSchemaRow extends Component{
                       <div className="btn btn-link">
                         <Input
                           type="checkbox"
+                          value={row.nullable}
+                          onChange={this.onNullableChange.bind(this, index)}
                         />
                       </div>
                       <div className="btn btn-link">

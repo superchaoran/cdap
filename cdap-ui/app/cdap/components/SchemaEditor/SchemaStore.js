@@ -53,7 +53,7 @@ let createStoreInstance = () => {
         type: 'record',
         fields: [
           {
-            name: 'Field1',
+            name: '',
             displayType: 'string',
             type: 'string'
           }

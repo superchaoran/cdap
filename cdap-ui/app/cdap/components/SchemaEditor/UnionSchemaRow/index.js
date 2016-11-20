@@ -30,31 +30,58 @@ export default class UnionSchemaRow extends Component {
       let displayTypes = parsedTypes.map(type => type.displayType);
 
       this.state = {
-        types: displayTypes
+        types: displayTypes,
+        parsedTypes
       };
     } else {
       this.state = {
         types: [
           'string'
+        ],
+        parsedTypes: [
+          'string'
         ]
       };
     }
     setTimeout(() => {
-      props.onChange(this.state.types);
+      props.onChange(this.state.parsedTypes);
     });
     this.onTypeChange = this.onTypeChange.bind(this);
   }
-  onTypeChange(e) {
+  onTypeChange(index, e) {
+    let types = this.state.types;
+    types[index] = e.target.value;
+    let parsedTypes = this.state.parsedTypes;
+    parsedTypes[index] = e.target.value;
     this.setState({
-      types: [e.target.value]
+      types,
+      parsedTypes
     }, () => {
-      this.onChange(this.state.types[0]);
+      this.props.onChange(this.state.parsedTypes);
     });
   }
-  onChange(typeState) {
-    this.props.onChange([
-      typeState
-    ]);
+  onTypeAdd(index) {
+    let types = this.state.types;
+    let parsedTypes = this.state.parsedTypes;
+    types = [
+      ...types.slice(0, index + 1),
+      'string',
+      ...types.slice(index + 1, types.length)
+    ];
+    parsedTypes = [
+      ...parsedTypes.slice(0, index + 1),
+      'string',
+      ...parsedTypes.slice(index + 1, parsedTypes.length)
+    ];
+    this.setState({ types, parsedTypes });
+    this.props.onChange(this.state.parsedTypes);
+  }
+  onChange(index, parsedType) {
+    let parsedTypes = this.state.parsedTypes;
+    parsedTypes[index] = parsedType;
+    this.setState({parsedTypes}, () => {
+      this.props.onChange(this.state.parsedTypes);
+    });
   }
   render() {
     return (
@@ -67,15 +94,28 @@ export default class UnionSchemaRow extends Component {
                   <SelectWithOptions
                     options={SCHEMA_TYPES.types}
                     value={type}
-                    onChange={this.onTypeChange.bind(this)}
+                    onChange={this.onTypeChange.bind(this, index)}
                   />
                   <div className="field-type"></div>
-                  <div className="field-isnull text-center"> TBD </div>
+                  <div className="field-isnull">
+                    <div className="btn btn-link">
+                      <span
+                        className="fa fa-plus"
+                        onClick={this.onTypeAdd.bind(this, index)}
+                      ></span>
+                    </div>
+                    <div className="btn btn-link">
+                      <span
+                        className="fa fa-trash fa-xs text-danger"
+                        >
+                      </span>
+                    </div>
+                  </div>
                   {
                     checkComplexType(type) ?
                       <AbstractSchemaRow
                         row={type}
-                        onChange={this.onChange.bind(this)}
+                        onChange={this.onChange.bind(this, index)}
                       />
                     :
                       null

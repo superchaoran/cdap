@@ -48,7 +48,22 @@ export default class EnumSchemaRow extends Component {
     }, () => {
       this.props.onChange({
         type: 'enum',
-        symbols
+        symbols: this.state.symbols
+      });
+    });
+  }
+
+  onSymbolAdd(index, e) {
+    let symbols = this.state.symbols;
+    symbols = [
+      ...symbols.slice(0, index + 1),
+      e.target.value || '',
+      ...symbols.slice(index + 1, symbols.length)
+    ];
+    this.setState({symbols}, () => {
+      this.props.onChange({
+        type: 'enum',
+        symbols: this.state.symbols
       });
     });
   }
@@ -56,19 +71,35 @@ export default class EnumSchemaRow extends Component {
   render() {
     return (
       <div className="enum-schema-row">
-        <div className="enum-schema-symbols-row">
-          {
-            this.state.symbols.map((symbol, index) => {
-              return (
+        {
+          this.state.symbols.map((symbol, index) => {
+            return (
+              <div
+                className="enum-schema-symbols-row"
+                key={index}
+              >
                 <Input
                   key={index}
+                  className="field-name"
                   value={symbol}
                   onChange={this.onSymbolChange.bind(this, index)}
                 />
-              );
-            })
-          }
-        </div>
+                <div className="field-type"></div>
+                <div className="field-isnull">
+                  <div className="btn btn-link">
+                    <span
+                      className="fa fa-plus"
+                      onClick={this.onSymbolAdd.bind(this, index)}
+                    ></span>
+                  </div>
+                  <div className="btn btn-link">
+                    <span className="fa fa-trash text-danger"></span>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        }
       </div>
     );
   }

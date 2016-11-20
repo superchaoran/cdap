@@ -86,8 +86,13 @@ function getParsedSchema(schema) {
   if (isEmptySchema(schema) || (!schema || schema === 'record')) {
     return defaultSchema;
   }
+  let parsed;
 
-  let parsed = avsc.parse(schema, { wrapUnions: true });
+  try {
+    parsed = avsc.parse(schema, { wrapUnions: true });
+  } catch(e) {
+    return;
+  }
 
   let parsedSchema = parsed.getFields().map((field) => {
     let type = field.getType();

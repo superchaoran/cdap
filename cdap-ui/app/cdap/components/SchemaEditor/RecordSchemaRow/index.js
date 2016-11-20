@@ -33,7 +33,7 @@ export default class RecordSchemaRow extends Component{
           name,
           type
         };
-      });
+      }).filter(field => field.name && field.type);
       this.state = {
         type: 'record',
         name: 'a' +  uuid.v4().split('-').join(''),
@@ -54,12 +54,10 @@ export default class RecordSchemaRow extends Component{
             nested: false
           }
         ],
-        parsedFields: [
-          {
-            name: '',
-            type: 'string'
-          }
-        ]
+        parsedFields: [{
+          name: '',
+          type: 'string'
+        }]
       };
     }
     setTimeout(() => {
@@ -71,6 +69,29 @@ export default class RecordSchemaRow extends Component{
         name: this.state.name,
         fields: parsedFields
       });
+    });
+  }
+  addNewRow(index) {
+    let displayFields = this.state.displayFields;
+    let parsedFields = this.state.parsedFields;
+    const insertIntoArray = (arr, ele) => {
+      return [
+        ...arr.slice(0, index + 1),
+        ele,
+        ...arr.slice(index + 1, displayFields.length)
+      ];
+    };
+    displayFields = insertIntoArray(displayFields, {
+      name: '',
+      displayType: 'string'
+    });
+    parsedFields = insertIntoArray(parsedFields, {
+      name: '',
+      type: 'string'
+    });
+    this.setState({
+      displayFields,
+      parsedFields
     });
   }
   onNameChange(index, e) {
@@ -131,44 +152,55 @@ export default class RecordSchemaRow extends Component{
   render() {
     return (
       <div className="record-schema-row">
-        <div className="record-schema-records-row">
-          {
-            this.state
-                .displayFields
-                .map((row, index) => {
-                  return (
-                    <div
-                      className="schema-row"
-                      key={index}
-                    >
-                      <div className="field-name">
-                        <Input
-                          value={row.name}
-                          onChange={this.onNameChange.bind(this, index)}
-                        />
-                      </div>
-                      <div className="field-type">
-                        <SelectWithOptions
-                          options={SCHEMA_TYPES.types}
-                          value={row.displayType}
-                          onChange={this.onTypeChange.bind(this, index)}
-                        />
-                      </div>
-                      <div className="field-isnull text-center">TBD</div>
-                      {
-                        checkComplexType(row.displayType) ?
-                          <AbstractSchemaRow
-                            row={row.type}
-                            onChange={this.onChange.bind(this, index)}
-                          />
-                        :
-                          null
-                      }
+        {
+          this.state
+              .displayFields
+              .map((row, index) => {
+                return (
+                  <div
+                    className="schema-row"
+                    key={index}
+                  >
+                    <div className="field-name">
+                      <Input
+                        value={row.name}
+                        onChange={this.onNameChange.bind(this, index)}
+                      />
                     </div>
-                  );
-                })
-          }
-        </div>
+                    <div className="field-type">
+                      <SelectWithOptions
+                        options={SCHEMA_TYPES.types}
+                        value={row.displayType}
+                        onChange={this.onTypeChange.bind(this, index)}
+                      />
+                    </div>
+                    <div className="field-isnull">
+                      <div className="btn btn-link">
+                        <span
+                          className="fa fa-plus fa-xs"
+                          onClick={this.addNewRow.bind(this, index)}
+                        ></span>
+                      </div>
+                      <div className="btn btn-link">
+                        <span
+                          className="fa fa-trash fa-xs text-danger"
+                          >
+                        </span>
+                      </div>
+                    </div>
+                    {
+                      checkComplexType(row.displayType) ?
+                        <AbstractSchemaRow
+                          row={row.type}
+                          onChange={this.onChange.bind(this, index)}
+                        />
+                      :
+                        null
+                    }
+                  </div>
+                );
+              })
+        }
       </div>
     );
   }

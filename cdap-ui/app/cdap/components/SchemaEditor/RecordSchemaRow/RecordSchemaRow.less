@@ -14,18 +14,23 @@
  * the License.
 */
 .record-schema-row {
-  .record-schema-field-row {
-    .field-name {
+  > .schema-row {
+    > .field-name {
       width: ~"calc(100% - 80px - 75px)";
       width: ~"-moz-calc(100% - 80px - 75px)";
       width: ~"-webkit-calc(100% - 80px - 75px)";
     }
-    .field-type {
+    > .field-type {
       width: 80px;
       padding: 0 5px;
+      vertical-align: top;
     }
-    .field-isnull {
+    > .field-isnull {
       width: 75px;
+      .btn.btn-link {
+        display: inline-block;
+        padding: 5px;
+      }
     }
     .field-name,
     .field-type,

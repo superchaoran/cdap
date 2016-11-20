@@ -18,6 +18,7 @@ import React, {PropTypes, Component} from 'react';
 import {parseType} from 'components/SchemaEditor/SchemaHelpers';
 import {Input} from 'reactstrap';
 require('./EnumSchemaRow.less');
+// import uuid from 'node-uuid';
 
 export default class EnumSchemaRow extends Component {
   constructor(props) {
@@ -68,6 +69,22 @@ export default class EnumSchemaRow extends Component {
     });
   }
 
+  onSymbolRemove(index) {
+    let symbols = this.state.symbols;
+    symbols = [
+      ...symbols.slice(0, index),
+      ...symbols.slice(index + 1, symbols.length)
+    ];
+    this.setState({
+      symbols
+    }, () => {
+      this.props.onChange({
+        type: 'enum',
+        symbols: this.state.symbols
+      });
+    });
+  }
+
   render() {
     return (
       <div className="enum-schema-row">
@@ -79,13 +96,13 @@ export default class EnumSchemaRow extends Component {
                 key={index}
               >
                 <Input
-                  key={index}
                   className="field-name"
                   value={symbol}
                   onChange={this.onSymbolChange.bind(this, index)}
                 />
                 <div className="field-type"></div>
                 <div className="field-isnull">
+                  <div className="btn btn-link"></div>
                   <div className="btn btn-link">
                     <span
                       className="fa fa-plus"
@@ -93,7 +110,15 @@ export default class EnumSchemaRow extends Component {
                     ></span>
                   </div>
                   <div className="btn btn-link">
-                    <span className="fa fa-trash text-danger"></span>
+                    {
+                      this.state.symbols !== 1 ?
+                        <span
+                          className="fa fa-trash text-danger"
+                          onClick={this.onSymbolRemove.bind(this, index)}
+                        ></span>
+                      :
+                        null
+                    }
                   </div>
                 </div>
               </div>

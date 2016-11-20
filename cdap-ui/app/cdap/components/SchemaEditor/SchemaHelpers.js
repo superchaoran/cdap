@@ -76,8 +76,8 @@ function getParsedSchema(schema) {
     id: 'a' + uuid.v4().split('-').join(''),
     nested: false
   };
-  const isEmptySchema = () => {
-    if (!schema && !(schema.fields || (schema.getFields && schema.getFields().length > 0))) {
+  const isEmptySchema = (schema) => {
+    if (!schema && !(schema.fields || (schema.getFields && schema.getFields().length))) {
       return true;
     }
     return false;

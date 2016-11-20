@@ -15,7 +15,7 @@
  */
 
 import React, {PropTypes, Component} from 'react';
-import {SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor/SchemaHelpers';
+import {SCHEMA_TYPES, checkComplexType, getParsedSchema} from 'components/SchemaEditor/SchemaHelpers';
 import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
 require('./RecordSchemaRow.less');
 import uuid from 'node-uuid';
@@ -26,7 +26,7 @@ export default class RecordSchemaRow extends Component{
   constructor(props) {
     super(props);
     if (typeof props.row === 'object') {
-      let displayFields = props.row;
+      let displayFields = getParsedSchema(props.row);
       let parsedFields = displayFields.map(field => {
         let {name, type} = field;
         return {
@@ -71,7 +71,7 @@ export default class RecordSchemaRow extends Component{
       });
     });
   }
-  addNewRow(index) {
+  onRowAdd(index) {
     let displayFields = this.state.displayFields;
     let parsedFields = this.state.parsedFields;
     const insertIntoArray = (arr, ele) => {
@@ -83,7 +83,8 @@ export default class RecordSchemaRow extends Component{
     };
     displayFields = insertIntoArray(displayFields, {
       name: '',
-      displayType: 'string'
+      displayType: 'string',
+      id: uuid.v4()
     });
     parsedFields = insertIntoArray(parsedFields, {
       name: '',
@@ -92,6 +93,31 @@ export default class RecordSchemaRow extends Component{
     this.setState({
       displayFields,
       parsedFields
+    });
+  }
+  onRowRemove(index) {
+    let displayFields = this.state.displayFields;
+    let parsedFields = this.state.parsedFields;
+    const removeElementAtArray = (arr, index) => {
+      return [
+        ...arr.slice(0, index),
+        ...arr.slice(index + 1, arr.length)
+      ];
+    };
+    displayFields = removeElementAtArray(displayFields, index);
+    parsedFields = removeElementAtArray(parsedFields, index);
+    this.setState({
+      displayFields,
+      parsedFields
+    }, () => {
+      let parsedFields = this.state
+        .parsedFields
+        .filter(field => field.name && field.type);
+      this.props.onChange({
+        type: 'record',
+        name: this.state.name,
+        fields: parsedFields
+      });
     });
   }
   onNameChange(index, e) {
@@ -107,7 +133,7 @@ export default class RecordSchemaRow extends Component{
         .parsedFields
         .filter(field => field.name && field.type);
       this.props.onChange({
-        name: 'a' + uuid.v4().split('-').join(''),
+        name: this.state.name,
         type: 'record',
         fields: parsedFields
       });
@@ -127,7 +153,7 @@ export default class RecordSchemaRow extends Component{
         .parsedFields
         .filter(field => field.name && field.type);
       this.props.onChange({
-        name: 'a' + uuid.v4().split('-').join(''),
+        name: this.state.name,
         type: 'record',
         fields: parsedFields
       });
@@ -143,7 +169,7 @@ export default class RecordSchemaRow extends Component{
         .parsedFields
         .filter(field => field.name && field.type);
       this.props.onChange({
-        name: 'a' + uuid.v4().split('-').join(''),
+        name: this.state.name,
         type: 'record',
         fields: parsedFields
       });
@@ -159,12 +185,13 @@ export default class RecordSchemaRow extends Component{
                 return (
                   <div
                     className="schema-row"
-                    key={index}
+                    key={row.id}
                   >
                     <div className="field-name">
                       <Input
-                        value={row.name}
-                        onChange={this.onNameChange.bind(this, index)}
+                        defaultValue={row.name}
+                        onFocus={() => row.name}
+                        onBlur={this.onNameChange.bind(this, index)}
                       />
                     </div>
                     <div className="field-type">
@@ -176,16 +203,27 @@ export default class RecordSchemaRow extends Component{
                     </div>
                     <div className="field-isnull">
                       <div className="btn btn-link">
-                        <span
-                          className="fa fa-plus fa-xs"
-                          onClick={this.addNewRow.bind(this, index)}
-                        ></span>
+                        <Input
+                          type="checkbox"
+                        />
                       </div>
                       <div className="btn btn-link">
                         <span
-                          className="fa fa-trash fa-xs text-danger"
-                          >
-                        </span>
+                          className="fa fa-plus fa-xs"
+                          onClick={this.onRowAdd.bind(this, index)}
+                        ></span>
+                      </div>
+                      <div className="btn btn-link">
+                        {
+                          this.state.displayFields.length !== 1 ?
+                            <span
+                              className="fa fa-trash fa-xs text-danger"
+                              onClick={this.onRowRemove.bind(this, index)}
+                              >
+                            </span>
+                          :
+                            null
+                        }
                       </div>
                     </div>
                     {

@@ -18,6 +18,8 @@ import React, {PropTypes, Component} from 'react';
 import {parseType, SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor/SchemaHelpers';
 import SelectWithOptions from 'components/SelectWithOptions';
 import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
+import {Input} from 'reactstrap';
+import uuid from 'node-uuid';
 
 require('./UnionSchemaRow.less');
 
@@ -27,16 +29,24 @@ export default class UnionSchemaRow extends Component {
     if (typeof props.row.type === 'object') {
       let types = props.row.type.getTypes();
       let parsedTypes = types.map(type => parseType(type));
-      let displayTypes = parsedTypes.map(type => type.displayType);
+      let displayTypes = parsedTypes.map(type => {
+        return {
+          type: type.displayType,
+          id: uuid.v4()
+        };
+      });
 
       this.state = {
-        types: displayTypes,
+        displayTypes,
         parsedTypes
       };
     } else {
       this.state = {
-        types: [
-          'string'
+        displayTypes: [
+          {
+            type: 'string',
+            id: uuid.v4()
+          }
         ],
         parsedTypes: [
           'string'
@@ -49,32 +59,51 @@ export default class UnionSchemaRow extends Component {
     this.onTypeChange = this.onTypeChange.bind(this);
   }
   onTypeChange(index, e) {
-    let types = this.state.types;
-    types[index] = e.target.value;
+    let displayTypes = this.state.displayTypes;
+    displayTypes[index].type = e.target.value;
     let parsedTypes = this.state.parsedTypes;
     parsedTypes[index] = e.target.value;
     this.setState({
-      types,
+      displayTypes,
       parsedTypes
     }, () => {
       this.props.onChange(this.state.parsedTypes);
     });
   }
   onTypeAdd(index) {
-    let types = this.state.types;
+    let displayTypes = this.state.displayTypes;
     let parsedTypes = this.state.parsedTypes;
-    types = [
-      ...types.slice(0, index + 1),
-      'string',
-      ...types.slice(index + 1, types.length)
+    displayTypes = [
+      ...displayTypes.slice(0, index + 1),
+      {
+        type: 'string',
+        id: uuid.v4()
+      },
+      ...displayTypes.slice(index + 1, displayTypes.length)
     ];
     parsedTypes = [
       ...parsedTypes.slice(0, index + 1),
       'string',
       ...parsedTypes.slice(index + 1, parsedTypes.length)
     ];
-    this.setState({ types, parsedTypes });
-    this.props.onChange(this.state.parsedTypes);
+    this.setState({ displayTypes, parsedTypes }, () => {
+      this.props.onChange(this.state.parsedTypes);
+    });
+  }
+  onTypeRemove(index) {
+    let displayTypes = this.state.displayTypes;
+    let parsedTypes = this.state.parsedTypes;
+    displayTypes = [
+      ...displayTypes.slice(0, index),
+      ...displayTypes.slice(index + 1, displayTypes.length)
+    ];
+    parsedTypes = [
+      ...parsedTypes.slice(0, index),
+      ...parsedTypes.slice(index + 1, parsedTypes.length)
+    ];
+    this.setState({ displayTypes, parsedTypes }, () => {
+      this.props.onChange(this.state.parsedTypes);
+    });
   }
   onChange(index, parsedType) {
     let parsedTypes = this.state.parsedTypes;
@@ -88,16 +117,21 @@ export default class UnionSchemaRow extends Component {
       <div className="union-schema-row">
         <div className="union-schema-types-row">
           {
-            this.state.types.map((type, index) => {
+            this.state.displayTypes.map((displayType, index) => {
               return (
-                <div key={index}>
+                <div key={displayType.id}>
                   <SelectWithOptions
                     options={SCHEMA_TYPES.types}
-                    value={type}
+                    value={displayType.type}
                     onChange={this.onTypeChange.bind(this, index)}
                   />
                   <div className="field-type"></div>
                   <div className="field-isnull">
+                    <div className="btn btn-link">
+                      <Input
+                        type="checkbox"
+                      />
+                    </div>
                     <div className="btn btn-link">
                       <span
                         className="fa fa-plus"
@@ -105,16 +139,22 @@ export default class UnionSchemaRow extends Component {
                       ></span>
                     </div>
                     <div className="btn btn-link">
-                      <span
-                        className="fa fa-trash fa-xs text-danger"
-                        >
-                      </span>
+                      {
+                        this.state.displayTypes.length !== 1 ?
+                          <span
+                            className="fa fa-trash fa-xs text-danger"
+                            onClick={this.onTypeRemove.bind(this, index)}
+                          >
+                          </span>
+                        :
+                          null
+                      }
                     </div>
                   </div>
                   {
-                    checkComplexType(type) ?
+                    checkComplexType(displayType.type) ?
                       <AbstractSchemaRow
-                        row={type}
+                        row={displayType.type}
                         onChange={this.onChange.bind(this, index)}
                       />
                     :

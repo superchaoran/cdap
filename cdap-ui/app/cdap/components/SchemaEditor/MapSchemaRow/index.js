@@ -18,6 +18,7 @@ import React, {PropTypes, Component} from 'react';
 import SelectWithOptions from 'components/SelectWithOptions';
 import {parseType, SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor/SchemaHelpers';
 import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
+import {Input} from 'reactstrap';
 
 require('./MapSchemaRow.less');
 
@@ -91,7 +92,13 @@ export default class MapSchemaRow extends Component {
               />
             </div>
             <div className="field-type"></div>
-            <div className="field-isnull text-center">TBD</div>
+            <div className="field-isnull">
+              <div className="btn btn-link">
+                <Input
+                  type="checkbox"
+                />
+              </div>
+            </div>
             {
               checkComplexType(this.state.keysType) ?
                 <AbstractSchemaRow
@@ -112,7 +119,13 @@ export default class MapSchemaRow extends Component {
               />
             </div>
             <div className="field-type"></div>
-            <div className="field-isnull text-center">TBD</div>
+            <div className="field-isnull">
+              <div className="btn btn-link">
+                <Input
+                  type="checkbox"
+                />
+              </div>
+            </div>
               {
                 checkComplexType(this.state.valuesType) ?
                   <AbstractSchemaRow

@@ -25,7 +25,12 @@ export default class SchemaEditor extends Component {
   constructor(props) {
     super(props);
     let state = SchemaStore.getState();
-    let rows = getParsedSchema(state.schema);
+    let rows;
+    try {
+      rows = avsc.parse(state.schema, { wrapUnions: true });
+    } catch(e) {
+      console.log('Error parsing schema: ', e);
+    }
     this.state = {
       parsedRows: rows,
     };

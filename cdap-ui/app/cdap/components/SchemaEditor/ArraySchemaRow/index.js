@@ -18,6 +18,8 @@ import React, {PropTypes, Component} from 'react';
 import {parseType, SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor/SchemaHelpers';
 import SelectWithOptions from 'components/SelectWithOptions';
 import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
+import {Input} from 'reactstrap';
+
 require('./ArraySchemaRow.less');
 
 export default class ArraySchemaRow extends Component{
@@ -63,11 +65,21 @@ export default class ArraySchemaRow extends Component{
     return (
       <div className="array-schema-row">
         <div className="array-schema-type-row">
-          <SelectWithOptions
-            options={SCHEMA_TYPES.types}
-            value={this.state.displayType}
-            onChange={this.onTypeChange}
-          />
+          <div className="field-name">
+            <SelectWithOptions
+              options={SCHEMA_TYPES.types}
+              value={this.state.displayType}
+              onChange={this.onTypeChange}
+            />
+          </div>
+          <div className="field-type"></div>
+          <div className="field-isnull">
+            <div className="btn btn-link">
+              <Input
+                type="checkbox"
+              />
+            </div>
+          </div>
         </div>
         {
           checkComplexType(this.state.displayType) ?

@@ -104,8 +104,6 @@ export default class Filter extends Component {
         }
       });
     } else {
-      console.log('ignore', this.state.filterIgnoreCase);
-
       let filterObj = {
         column: this.props.column,
         filterBy: this.filterByText,

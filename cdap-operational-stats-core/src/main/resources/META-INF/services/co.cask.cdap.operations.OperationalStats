@@ -17,3 +17,5 @@
 co.cask.cdap.operations.hdfs.HDFSInfo
 co.cask.cdap.operations.hdfs.HDFSStorage
 co.cask.cdap.operations.hdfs.HDFSNodes
+co.cask.cdap.operations.yarn.YARNApps
+co.cask.cdap.operations.yarn.YARNInfo

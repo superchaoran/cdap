@@ -14,19 +14,19 @@
  * the License.
  */
 
-const WranglerActions = {
-  setData: 'WRANGLER_SET_DATA',
-  dropColumn: 'WRANGLER_DROP_COLUMN',
-  splitColumn: 'WRANGLER_SPLIT_COLUMN',
-  mergeColumn: 'WRANGLER_MERGE_COLUMN',
-  renameColumn: 'WRANGLER_RENAME_COLUMN',
-  upperCaseColumn: 'WRANGLER_UPPER_CASE_COLUMN',
-  lowerCaseColumn: 'WRANGLER_LOWER_CASE_COLUMN',
-  titleCaseColumn: 'WRANGLER_TITLE_CASE_COLUMN',
-  subStringColumn: 'WRANGLER_SUBSTRING_COLUMN',
-  sortColumn: 'WRANGLER_SORT_COLUMN',
-  setFilter: 'WRANGLER_SET_FILTER',
-  reset: 'WRANGLER_RESET'
-};
+.wrangler-history {
+  .history-list {
+    .history-row {
+      padding: 10px 5px;
+      font-size: 11px;
 
-export default WranglerActions;
+      &:nth-child(even) {
+        background-color: #eeeeee;
+      }
+
+      &:nth-child(odd) {
+        background-color: white;
+      }
+    }
+  }
+}

@@ -21,9 +21,9 @@ import shortid from 'shortid';
 import Histogram from 'components/Wrangler/Histogram';
 import WranglerStore from 'components/Wrangler/Redux/WranglerStore';
 import WranglerActions from 'components/Wrangler/Redux/WranglerActions';
-import RenameAction from 'components/Wrangler/ColumnActions/RenameAction';
 import ColumnActionsDropdown from 'components/Wrangler/ColumnActionsDropdown';
 import orderBy from 'lodash/orderBy';
+import Filter from 'components/Wrangler/Filter';
 
 export default class WrangleData extends Component {
   constructor(props) {
@@ -34,7 +34,7 @@ export default class WrangleData extends Component {
     let stateObj = Object.assign({}, wrangler, {
       loading: false,
       activeSelection: null,
-      showHistogram: false
+      showHistogram: false,
     });
 
     this.state = stateObj;
@@ -96,6 +96,101 @@ export default class WrangleData extends Component {
     );
   }
 
+  filterData(data, column, filterBy, ignoreCase) {
+    function _equal(row) {
+      let columnData = row[column];
+      let filterData = filterBy;
+
+      if (ignoreCase) {
+        columnData = columnData.toLowerCase();
+        filterData = filterData.toLowerCase();
+      }
+
+      return columnData === filterData;
+    }
+
+    function _notEqual(row) {
+      let columnData = row[column];
+      let filterData = filterBy;
+
+      if (ignoreCase) {
+        columnData = columnData.toLowerCase();
+        filterData = filterData.toLowerCase();
+      }
+
+      return columnData !== filterData;
+    }
+
+    function _lessThan(row) {
+      return parseFloat(row[column]) < parseFloat(filterBy);
+    }
+
+    function _greaterThan(row) {
+      return parseFloat(row[column]) < parseFloat(filterBy);
+    }
+
+    function _lessEqualThan(row) {
+      return parseFloat(row[column]) <= parseFloat(filterBy);
+    }
+
+    function _greaterEqualThan(row) {
+      return parseFloat(row[column]) <= parseFloat(filterBy);
+    }
+
+    function _startsWith(row) {
+      let columnData = row[column];
+      let filterData = filterBy;
+
+      if (ignoreCase) {
+        columnData = columnData.toLowerCase();
+        filterData = filterData.toLowerCase();
+      }
+
+      return columnData.substr(0, filterData.length) === filterData;
+    }
+
+    function _endsWith(row) {
+      let columnData = row[column];
+      let filterData = filterBy;
+
+      if (ignoreCase) {
+        columnData = columnData.toLowerCase();
+        filterData = filterData.toLowerCase();
+      }
+
+      let position = columnData.length - filterData.length;
+      return columnData.substr(position) === filterData;
+    }
+
+    function _contains(row) {
+      const ignoreCase = this.state.filterIgnoreCase;
+      let columnData = row[column];
+      let filterData = filterBy;
+
+      if (ignoreCase) {
+        columnData = columnData.toLowerCase();
+        filterData = filterData.toLowerCase();
+      }
+
+      return columnData.indexOf(filterData) !== -1;
+    }
+
+    const functionsMap = {
+      '=': _equal,
+      '!=': _notEqual,
+      '<': _lessThan,
+      '>': _greaterThan,
+      '<=': _lessEqualThan,
+      '>=': _greaterEqualThan,
+      'startsWith': _startsWith,
+      'endsWith': _endsWith,
+      'contains': _contains
+    };
+    const filterFunction = this.state.filter.filterFunction;
+
+    return data.filter(functionsMap[filterFunction].bind(this));
+  }
+
   render() {
     if (this.state.loading) {
       return (
@@ -118,12 +213,17 @@ export default class WrangleData extends Component {
       data = orderBy(originalData, [this.state.sort], [sortOrder]);
     }
 
+    if (this.state.filter) {
+      const filter = this.state.filter;
+      data = this.filterData(data, filter.column, filter.filterBy, filter.filterIgnoreCase);
+    }
+
     const errorCount = headers.reduce((prev, curr) => {
       let count = errors[curr] ? errors[curr].count : 0;
       return prev + count;
     }, 0);
 
-    const errorCircle = <i className="fa fa-circle error pull-right"></i>;
+    const errorCircle = <i className="fa fa-circle error"></i>;
 
     return (
       <div className="wrangler-data row">
@@ -150,14 +250,7 @@ export default class WrangleData extends Component {
             </span>
           </div>
 
-          <div
-            className={classnames('transform-item', { disabled: !this.state.activeSelection})}
-            onClick={this.onFilter}
-          >
-            <span className="fa fa-font"></span>
-            <span className="transform-item-text">Text Filter</span>
-
-          </div>
+          <Filter column={this.state.activeSelection} />
 
           <div
             className="transform-item"
@@ -170,8 +263,6 @@ export default class WrangleData extends Component {
             </span>
 
           </div>
-
-          <h4>History</h4>
 
           <WrangleHistory
             historyArray={this.state.history}
@@ -211,15 +302,16 @@ export default class WrangleData extends Component {
                           })}
                           key={head}
                         >
-                          <RenameAction column={head} />
                           <span
                             className="header-text"
                             onClick={this.onColumnClick.bind(this, head)}
                           >
                             {head}
                           </span>
-                          {errors[head] && errors[head].count ? errorCircle : null}
-                          <ColumnActionsDropdown column={head} />
+                          <span className="pull-right">
+                            {errors[head] && errors[head].count ? errorCircle : null}
+                            <ColumnActionsDropdown column={head} />
+                          </span>
                         </th>
                       );
                     })
@@ -231,7 +323,7 @@ export default class WrangleData extends Component {
                     headers.map((head) => {
                       return (
                         <th
-                          className={classnames('text-center', {
+                          className={classnames({
                             active: this.state.activeSelection === head
                           })}
                           key={head}

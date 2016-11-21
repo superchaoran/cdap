@@ -27,7 +27,8 @@ export default class MergeAction extends Component {
     this.state = {
       isOpen: false,
       error: false,
-      columnList: []
+      columnList: [],
+      mergeWith: ''
     };
 
     this.toggle = this.toggle.bind(this);
@@ -38,8 +39,10 @@ export default class MergeAction extends Component {
     let data = WranglerStore.getState().wrangler.data;
     let columns = Object.keys(data[0]);
     columns.splice(columns.indexOf(this.props.column), 1);
-    this.mergeWith = columns[0];
-    this.setState({columnList: columns});
+    this.setState({
+      columnList: columns,
+      mergeWith: columns[0]
+    });
   }
 
   toggle() {
@@ -47,7 +50,7 @@ export default class MergeAction extends Component {
   }
 
   onSave() {
-    const mergeWith = this.mergeWith;
+    const mergeWith = this.state.mergeWith;
     const joinBy = this.joinBy;
     const mergedColumnName = this.mergedColumnName;
 
@@ -95,8 +98,8 @@ export default class MergeAction extends Component {
 
             <select
               className="form-control"
-              value={this.mergeWith}
-              onChange={e => this.mergeWith = e.target.value}
+              value={this.state.mergeWith}
+              onChange={e => this.setState({mergeWith: e.target.value})}
             >
               {
                 this.state.columnList.map((header) => {

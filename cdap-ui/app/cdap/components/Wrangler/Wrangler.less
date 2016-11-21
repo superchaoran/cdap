@@ -15,7 +15,7 @@
  */
 
 @error-color: #e74c3c;
-
+@wrangler-left-panel-width: 200px;
 .error-text { color: @error-color; }
 
 .wrangler-container {
@@ -105,7 +105,7 @@
 
     .wrangle-transforms {
       left: 0;
-      width: 250px;
+      width: @wrangler-left-panel-width;
       border-right: 2px solid #dddddd;
 
       .wrangle-filters {
@@ -124,13 +124,18 @@
       }
 
       .transform-item {
-        height: 50px;
-        line-height: 50px;
-        font-size: 20px;
-        padding: 0 15px;
+        font-size: 14px;
+        padding: 10px 15px;
         border-bottom: 2px solid #dddddd;
         cursor: pointer;
 
+        &.expanded {
+          border-left: 4px solid #ff6600;
+          .filter-input {
+            margin-top: 10px;
+            font-size: 13px;
+          }
+        }
         &.disabled { cursor: not-allowed; }
         .transform-item-text {
           margin-left: 10px;
@@ -141,7 +146,7 @@
     }
 
     .wrangle-results {
-      left: 250px;
+      left: @wrangler-left-panel-width;
       right: 0;
       overflow-y: auto;
 
@@ -173,7 +178,7 @@
       th {
         font-size: 11px;
         font-weight: 400;
-        padding: 3px;
+        padding: 3px 8px;
       }
     }
 
@@ -183,7 +188,6 @@
 
     .header-text {
       cursor: pointer;
-      margin-left: 5px;
     }
 
     td {

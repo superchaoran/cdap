@@ -24,6 +24,7 @@ import LowerCaseAction from 'components/Wrangler/ColumnActions/LowerCaseAction';
 import TitleCaseAction from 'components/Wrangler/ColumnActions/TitleCaseAction';
 import SubstringAction from 'components/Wrangler/ColumnActions/SubstringAction';
 import MergeAction from 'components/Wrangler/ColumnActions/MergeAction';
+import RenameAction from 'components/Wrangler/ColumnActions/RenameAction';
 
 require('./ColumnActionsDropdown.less');
 
@@ -76,10 +77,11 @@ export default class ColumnActionsDropdown extends Component {
           <DropAction column={this.props.column} />
           <SplitAction column={this.props.column} />
           <MergeAction column={this.props.column} />
+          <SubstringAction column={this.props.column} />
           <UpperCaseAction column={this.props.column} />
           <LowerCaseAction column={this.props.column} />
           <TitleCaseAction column={this.props.column} />
-          <SubstringAction column={this.props.column} />
+          <RenameAction column={this.props.column} />
         </div>
       </div>
     );
@@ -89,7 +91,7 @@ export default class ColumnActionsDropdown extends Component {
     const columnId = `column-${this.props.column}`;
 
     return (
-      <span className="pull-right">
+      <span className="column-actions-dropdown">
         <span
           className="fa fa-bolt"
           id={columnId}

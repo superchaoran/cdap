@@ -43,6 +43,7 @@ const defaultInitialState = {
     history: [],
     histogram: {},
     columnTypes: {},
+    filter: null,
     sort: null,
     sortAscending: true
   }
@@ -107,6 +108,10 @@ const wrangler = (state = defaultAction, action = defaultInitialState) => {
       return Object.assign({}, state, {
         sort: action.payload.activeColumn,
         sortAscending: state.sort && state.sort === action.payload.activeColumn ? !state.sortAscending : true
+      });
+    case WranglerActions.setFilter:
+      return Object.assign({}, state, {
+        filter: action.payload.filter
       });
     case WranglerActions.reset:
       return defaultInitialState;

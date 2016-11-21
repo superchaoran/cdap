@@ -34,6 +34,7 @@ import co.cask.cdap.proto.ProgramType;
 import co.cask.cdap.proto.artifact.AppRequest;
 import co.cask.cdap.proto.artifact.ArtifactSummary;
 import co.cask.cdap.proto.id.ApplicationId;
+import co.cask.cdap.proto.id.ArtifactId;
 import co.cask.cdap.proto.id.NamespaceId;
 import co.cask.cdap.proto.id.ProgramId;
 import com.google.gson.Gson;
@@ -54,6 +55,12 @@ import javax.annotation.Nullable;
  */
 public class DefaultPreviewManager implements PreviewManager {
   private static final Gson GSON = new Gson();
+  private static final ProgramTerminator NOOP_PROGRAM_TERMINATOR = new ProgramTerminator() {
+    @Override
+    public void stop(ProgramId programId) throws Exception {
+      // no-op
+    }
+  };
   private final ApplicationLifecycleService applicationLifecycleService;
   private final ProgramLifecycleService programLifecycleService;
   private final PreviewStore previewStore;
@@ -76,30 +83,23 @@ public class DefaultPreviewManager implements PreviewManager {
     NamespaceId artifactNamespace = ArtifactScope.SYSTEM.equals((artifactSummary.getScope())) ? NamespaceId.SYSTEM
       : preview.getParent();
 
-    Id.Artifact artifactId =
-      Id.Artifact.from(artifactNamespace.toId(), artifactSummary.getName(), artifactSummary.getVersion());
+    ArtifactId artifactId = new ArtifactId(artifactNamespace.getNamespace(), artifactSummary.getName(),
+                                           artifactSummary.getVersion());
 
     String config = request.getConfig() == null ? null : GSON.toJson(request.getConfig());
 
     try {
       applicationLifecycleService.deployApp(preview.getParent(), preview.getApplication(), preview.getVersion(),
-                                            artifactId, config, new ProgramTerminator() {
-        @Override
-        public void stop(ProgramId programId) throws Exception {
-
-        }
-      });
+                                            artifactId.toId(), config, NOOP_PROGRAM_TERMINATOR);
     } catch (Exception e) {
       this.status = new PreviewStatus(PreviewStatus.Status.DEPLOY_FAILED, new BasicThrowable(e));
       return;
     }
 
     ProgramId programId = getProgramIdFromRequest(preview, request);
-    ProgramRuntimeService.RuntimeInfo runtimeInfo = programLifecycleService.start(programId,
-                                                                                  new HashMap<String, String>(),
-                                                                                  new HashMap<String, String>(), false);
+    ProgramController controller = programLifecycleService.start(programId, new HashMap<String, String>(), false);
 
-    runtimeInfo.getController().addListener(new AbstractListener() {
+    controller.addListener(new AbstractListener() {
       @Override
       public void init(ProgramController.State currentState, @Nullable Throwable cause) {
         status = new PreviewStatus(PreviewStatus.Status.RUNNING, null);
@@ -123,6 +123,7 @@ public class DefaultPreviewManager implements PreviewManager {
   }
 
   private ProgramId getProgramIdFromRequest(ApplicationId preview, AppRequest request) {
+    // TODO remove this when UI passes the program name and type in the AppRequest.
     if (request.getPreview() == null) {
       return preview.workflow("DataPipelineWorkflow");
     }

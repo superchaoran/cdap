@@ -103,6 +103,7 @@ public class PreviewDatasetFramework implements DatasetFramework {
 
   /**
    * Create instance of the {@link PreviewDatasetFramework}.
+   *
    * @param local the dataset framework instance in the preview space
    * @param actual the dataset framework instance in the real space
    * @param datasetNames list of dataset names which need to be accessed for read only purpose from the real space
@@ -180,7 +181,7 @@ public class PreviewDatasetFramework implements DatasetFramework {
 
   @Override
   public boolean hasSystemType(String typeName) throws DatasetManagementException {
-    return localDatasetFramework.hasSystemType(typeName);
+    return hasType(NamespaceId.SYSTEM.datasetType(typeName));
   }
 
   @Override

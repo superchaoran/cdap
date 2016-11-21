@@ -49,7 +49,7 @@ const defaultInitialState = {
   }
 };
 
-const wrangler = (state = defaultAction, action = defaultInitialState) => {
+const wrangler = (state = defaultInitialState, action = defaultAction) => {
   let stateCopy;
   let data;
   switch (action.type) {
@@ -324,7 +324,7 @@ function removeColumnMetadata(state, columns) {
 const WranglerStoreWrapper = () => {
   return createStore(
     combineReducers({
-      wrangler,
+      wrangler
     }),
     defaultInitialState
   );

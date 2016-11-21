@@ -17,6 +17,13 @@
 angular.module(PKG.name + '.commons')
   .service('WidgetFactory', function() {
     this.registry = {
+      'map' : {
+        element: '<my-map-widget></my-map-widget>',
+        attributes: {
+          'ng-model': 'model',
+          'data-config': 'myconfig'
+        }
+      },
       'number': {
         element: '<my-number-widget></my-number-widget>',
         attributes: {

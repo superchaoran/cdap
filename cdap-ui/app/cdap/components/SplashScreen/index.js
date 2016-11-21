@@ -30,7 +30,7 @@ import T from 'i18n-react';
     this.state = {
       error: '',
       showRegistration: window.CDAP_CONFIG.cdap.standaloneWebsiteSDKDownload,
-      showSplashScreen: false,
+      showSplashScreen: !window.CDAP_CONFIG.isEnterprise,
       registrationOpen: false,
       videoOpen: false,
       first: '',
@@ -50,7 +50,7 @@ import T from 'i18n-react';
   componentWillMount() {
     MyUserStoreApi.get().subscribe((res) => {
       this.setState({
-        showSplashScreen : !res.property["standalone-welcome-message"]
+        showSplashScreen : !window.CDAP_CONFIG.isEnterprise && !res.property["standalone-welcome-message"]
       });
     });
   }

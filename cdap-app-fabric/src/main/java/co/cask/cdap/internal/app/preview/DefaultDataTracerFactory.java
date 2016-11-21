@@ -28,6 +28,7 @@ public class DefaultDataTracerFactory implements DataTracerFactory {
 
   private final PreviewStore previewStore;
 
+  @Inject
   public DefaultDataTracerFactory(PreviewStore previewStore) {
     this.previewStore = previewStore;
   }

@@ -85,6 +85,5 @@ public class PreviewModule extends PrivateModule {
     bind(Scheduler.class).to(NoopScheduler.class);
 
     bind(PreviewStore.class).to(DefaultPreviewStore.class).in(Scopes.SINGLETON);
-    expose(PreviewStore.class);
   }
 }

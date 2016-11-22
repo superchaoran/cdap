@@ -217,9 +217,7 @@ public class PartitionedFileSetArguments {
    * @param partition the partition to add as input
    */
   public static void addInputPartition(Map<String, String> arguments, Partition partition) {
-    List<Partition> partitions = new ArrayList<>();
-    partitions.add(partition);
-    addInputPartitions(arguments, partitions);
+    addInputPartitions(arguments, Collections.singletonList(partition));
   }
 
   /**

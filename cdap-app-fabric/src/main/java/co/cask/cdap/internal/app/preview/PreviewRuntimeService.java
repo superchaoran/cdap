@@ -73,10 +73,9 @@ public class PreviewRuntimeService extends AbstractIdleService {
       applicationLifecycleService.start(),
       systemArtifactLoader.start(),
       programRuntimeService.start(),
-      programLifecycleService.start()
+      programLifecycleService.start(),
+      namespaceEnsurer.start()
     ).get();
-
-    namespaceEnsurer.startAndWait();
   }
 
   @Override

@@ -29,6 +29,7 @@ import co.cask.cdap.common.guice.ConfigModule;
 import co.cask.cdap.common.guice.IOModule;
 import co.cask.cdap.common.guice.LocationRuntimeModule;
 import co.cask.cdap.common.guice.preview.PreviewDiscoveryRuntimeModule;
+import co.cask.cdap.common.utils.DirUtils;
 import co.cask.cdap.common.utils.Networks;
 import co.cask.cdap.config.PreferencesStore;
 import co.cask.cdap.config.guice.ConfigStoreModule;
@@ -176,7 +177,7 @@ public class PreviewHttpHandler extends AbstractAppFabricHttpHandler {
                                                         "preview", application.getApplication()).toAbsolutePath();
 
           try {
-            Files.deleteIfExists(previewDirPath);
+            DirUtils.deleteDirectoryContents(previewDirPath.toFile(), false);
           } catch (IOException e) {
             LOG.warn("Error deleting the preview directory {}", previewDirPath, e);
           }
@@ -195,9 +196,6 @@ public class PreviewHttpHandler extends AbstractAppFabricHttpHandler {
     AppRequest appRequest;
     try (Reader reader = new InputStreamReader(new ChannelBufferInputStream(request.getContent()), Charsets.UTF_8)) {
       appRequest = GSON.fromJson(reader, AppRequest.class);
-    } catch (IOException e) {
-      LOG.error("Error reading request body.", e);
-      throw new IOException("Error reading request body.");
     } catch (JsonSyntaxException e) {
       throw new BadRequestException("Request body is invalid json: " + e.getMessage());
     }
@@ -257,9 +255,10 @@ public class PreviewHttpHandler extends AbstractAppFabricHttpHandler {
 
   @GET
   @Path("/previews/{preview-id}/tracers/{tracer-id}")
-  public void getData(HttpRequest request, HttpResponder responder, @PathParam("namespace-id") String namespaceId,
-                      @PathParam("preview-id") String previewId, @PathParam("tracer-id") String tracerId)
-    throws Exception {
+  public void getData(HttpRequest request, HttpResponder responder,
+                      @PathParam("namespace-id") String namespaceId,
+                      @PathParam("preview-id") String previewId,
+                      @PathParam("tracer-id") String tracerId) throws Exception {
     NamespaceId namespace = new NamespaceId(namespaceId);
     ApplicationId application = namespace.app(previewId);
 
@@ -281,7 +280,8 @@ public class PreviewHttpHandler extends AbstractAppFabricHttpHandler {
     java.nio.file.Path previewDirPath = Paths.get(cConf.get(Constants.CFG_LOCAL_DATA_DIR), "preview").toAbsolutePath();
 
     Files.createDirectories(previewDirPath);
-    java.nio.file.Path previewDir = Files.createTempDirectory(previewDirPath, applicationId.getApplication());
+    java.nio.file.Path previewDir = Files.createDirectory(Paths.get(previewDirPath.toAbsolutePath().toString(),
+                                                                    applicationId.getApplication()));
     previewcConf.set(Constants.CFG_LOCAL_DATA_DIR, previewDir.toString());
     previewcConf.set(Constants.Dataset.DATA_DIR, previewDir.toString());
     Configuration previewhConf = new Configuration(hConf);

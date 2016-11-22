@@ -37,6 +37,7 @@ public class PreviewStatus {
   }
 
   private final Status status;
+  // BasicThrowable is required here so that the exception can be serialized in REST response.
   private final BasicThrowable throwable;
 
   public PreviewStatus(Status status, @Nullable BasicThrowable throwable) {

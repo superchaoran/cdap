@@ -26,25 +26,20 @@ require('./UnionSchemaRow.less');
 export default class UnionSchemaRow extends Component {
   constructor(props) {
     super(props);
-    if (typeof props.row.type === 'object') {
-      let types = props.row.type.getTypes();
-      let parsedTypes = types.map(type => parseType(type));
-      let displayTypes = parsedTypes.map(type => {
-        return {
-          type: type.displayType,
-          id: uuid.v4(),
-          nullable: type.nullable
-        };
-      });
+    if (typeof props.row === 'object') {
+      let parsedTypes = props.row.getTypes();
+      let displayTypes = parsedTypes.map(type => Object.assign({}, parseType(type), {id: 'a' + uuid.v4()}));
 
       this.state = {
         displayTypes,
-        parsedTypes
+        parsedTypes,
+        error: ''
       };
     } else {
       this.state = {
         displayTypes: [
           {
+            displayType: 'string',
             type: 'string',
             id: uuid.v4(),
             nullable: false
@@ -52,7 +47,8 @@ export default class UnionSchemaRow extends Component {
         ],
         parsedTypes: [
           'string'
-        ]
+        ],
+        error: ''
       };
     }
     setTimeout(() => {
@@ -60,10 +56,20 @@ export default class UnionSchemaRow extends Component {
     });
     this.onTypeChange = this.onTypeChange.bind(this);
   }
+  isInvalid(parsedTypes) {
+    let error = '';
+    try {
+      avsc.parse(parsedTypes);
+    } catch(e) {
+      error = e.message;
+    }
+    return error;
+  }
   onNullableChange(index, e) {
     let displayTypes = this.state.displayTypes;
     let parsedTypes = this.state.parsedTypes;
     displayTypes[index].nullable = e.target.checked;
+    let error = '';
     if (e.target.checked) {
       parsedTypes[index] = [
         parsedTypes[index],
@@ -74,15 +80,18 @@ export default class UnionSchemaRow extends Component {
     }
     this.setState({
       displayTypes,
-      parsedTypes
+      parsedTypes,
+      error
     }, () => {
       this.props.onChange(this.state.parsedTypes);
     });
   }
   onTypeChange(index, e) {
     let displayTypes = this.state.displayTypes;
+    displayTypes[index].displayType = e.target.value;
     displayTypes[index].type = e.target.value;
     let parsedTypes = this.state.parsedTypes;
+    let error = '';
     if (displayTypes[index].nullable) {
       parsedTypes[index] = [
         e.target.value,
@@ -91,9 +100,17 @@ export default class UnionSchemaRow extends Component {
     } else {
       parsedTypes[index] = e.target.value;
     }
+    if (SCHEMA_TYPES.simpleTypes.indexOf(e.target.value) !== -1) {
+      error = this.isInvalid(parsedTypes);
+      if (error) {
+        this.setState({ error });
+        return;
+      }
+    }
     this.setState({
       displayTypes,
-      parsedTypes
+      parsedTypes,
+      error
     }, () => {
       this.props.onChange(this.state.parsedTypes);
     });
@@ -137,6 +154,7 @@ export default class UnionSchemaRow extends Component {
   onChange(index, parsedType) {
     let parsedTypes = this.state.parsedTypes;
     let displayTypes = this.state.displayTypes;
+    let error;
     if (displayTypes[index].nullable) {
       parsedTypes[index] = [
         parsedType,
@@ -145,13 +163,17 @@ export default class UnionSchemaRow extends Component {
     } else {
       parsedTypes[index] = parsedType;
     }
-    this.setState({parsedTypes}, () => {
+    error = this.isInvalid(parsedTypes);
+    this.setState({parsedTypes, error}, () => {
       this.props.onChange(this.state.parsedTypes);
     });
   }
   render() {
     return (
       <div className="union-schema-row">
+        <div className="text-danger">
+          {this.state.error}
+        </div>
         <div className="union-schema-types-row">
           {
             this.state.displayTypes.map((displayType, index) => {
@@ -159,7 +181,7 @@ export default class UnionSchemaRow extends Component {
                 <div key={displayType.id}>
                   <SelectWithOptions
                     options={SCHEMA_TYPES.types}
-                    value={displayType.type}
+                    value={displayType.displayType}
                     onChange={this.onTypeChange.bind(this, index)}
                   />
                   <div className="field-type"></div>
@@ -191,7 +213,7 @@ export default class UnionSchemaRow extends Component {
                     </div>
                   </div>
                   {
-                    checkComplexType(displayType.type) ?
+                    checkComplexType(displayType.displayType) ?
                       <AbstractSchemaRow
                         row={displayType.type}
                         onChange={this.onChange.bind(this, index)}

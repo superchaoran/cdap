@@ -25,14 +25,15 @@ require('./ArraySchemaRow.less');
 export default class ArraySchemaRow extends Component{
   constructor(props) {
     super(props);
-    if (typeof props.row.type === 'object') {
-      let item = parseType(props.row.type.getItemsType());
+    if (typeof props.row === 'object') {
+      let item = parseType(props.row.getItemsType());
       this.state = {
         displayType: {
           type: item.displayType,
           nullable: item.nullable
         },
-        parsedType: props.row.type.getItemsType()
+        parsedType: props.row.getItemsType(),
+        error: ''
       };
     } else {
       this.state = {
@@ -40,60 +41,113 @@ export default class ArraySchemaRow extends Component{
           type: props.row.type || 'string',
           nullable: false
         },
-        parsedType: props.row.type || 'string'
+        parsedType: props.row.type || 'string',
+        error: ''
       };
     }
     this.onTypeChange = this.onTypeChange.bind(this);
     setTimeout(() => {
       props.onChange({
         type: 'array',
-        items: this.state.displayType.type
+        items: this.state.parsedType
       });
     });
   }
+  isInvalid(parsedTypes) {
+    let error = '';
+    try {
+      avsc.parse(parsedTypes);
+    } catch(e) {
+      error = e.message;
+    }
+    return error;
+  }
   onTypeChange(e) {
+    if (SCHEMA_TYPES.simpleTypes.indexOf(e.target.value) !== -1) {
+      let error = this.isInvalid({
+        type: 'array',
+        items: e.target.value
+      });
+      if (error) {
+        this.setState({
+          error
+        });
+        return;
+      }
+    }
     this.setState({
       displayType: {
         type: e.target.value,
         nullable: this.state.displayType.nullable
-      }
+      },
+      parsedType: e.target.value,
+      error: ''
     }, () => {
+      let error = this.isInvalid({
+        type: 'array',
+        items: this.state.parsedType
+      });
+      if (error) {
+        return;
+      }
       this.props.onChange({
         type: 'array',
-        items: this.state.displayType.type
+        items: this.state.parsedType
       });
     });
   }
   onNullableChange(e) {
+    let error = this.isInvalid({
+      type: 'array',
+      items: e.target.value
+    });
+    if (error) {
+      this.setState({
+        error
+      });
+      return;
+    }
     this.setState({
       displayType: {
         type: this.state.displayType.type,
         nullable: e.target.checked
-      }
+      },
+      error: ''
     }, () => {
       if (this.state.displayType.nullable) {
         this.props.onChange({
           type: 'array',
           items: [
-            this.state.displayType.type,
+            this.state.parsedType,
             null
           ]
         });
       } else {
         this.props.onChange({
           type: 'array',
-          items: this.state.displayType.type
+          items: this.state.parsedType
         });
       }
     });
   }
   onChange(itemsState) {
+    let error = this.isInvalid({
+      type: 'array',
+      items: this.state.displayType.nullable ? [itemsState, 'null'] : itemsState
+    });
+    if (error) {
+      return;
+    }
+    this.setState({
+      parsedType: itemsState,
+      error: ''
+    });
     if (this.state.displayType.nullable) {
       this.props.onChange({
         type: 'array',
         items: [
           itemsState,
-          null
+          'null'
         ]
       });
     } else {
@@ -106,6 +160,9 @@ export default class ArraySchemaRow extends Component{
   render() {
     return (
       <div className="array-schema-row">
+        <div className="text-danger">
+          {this.state.error}
+        </div>
         <div className="array-schema-type-row">
           <div className="field-name">
             <SelectWithOptions
@@ -128,7 +185,7 @@ export default class ArraySchemaRow extends Component{
         {
           checkComplexType(this.state.displayType.type) ?
             <AbstractSchemaRow
-              row={this.state.displayType.type}
+              row={this.state.parsedType}
               onChange={this.onChange.bind(this)}
             />
           :

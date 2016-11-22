@@ -22,29 +22,43 @@ require('./EnumSchemaRow.less');
 export default class EnumSchemaRow extends Component {
   constructor(props) {
     super(props);
-    if (props.row.type) {
-      let rowType = parseType(props.row.type);
+    if (typeof props.row === 'object') {
+      let rowType = parseType(props.row);
       let symbols = rowType.type.getSymbols();
       this.state = {
-        symbols
+        symbols,
+        error: ''
       };
     } else {
       this.state = {
-        symbols: ['']
+        symbols: [''],
+        error: ''
       };
     }
-    setTimeout(() => {
-      this.props.onChange({
-        type: 'enum',
-        symbols: this.state.symbols
-      });
-    });
+  }
+  isInvalid(parsedTypes) {
+    let error = '';
+    try {
+      avsc.parse(parsedTypes);
+    } catch(e) {
+      error = e.message;
+    }
+    return error;
   }
   onSymbolChange(index, e) {
     let symbols = this.state.symbols;
     symbols[index] = e.target.value;
-    this.setState({
+    let error = this.isInvalid({
+      type: 'enum',
       symbols
+    });
+    if (error) {
+      this.setState({error});
+      return;
+    }
+    this.setState({
+      symbols,
+      error: ''
     }, () => {
       this.props.onChange({
         type: 'enum',
@@ -61,6 +75,13 @@ export default class EnumSchemaRow extends Component {
       ...symbols.slice(index + 1, symbols.length)
     ];
     this.setState({symbols}, () => {
+      let error = this.isInvalid({
+        type: 'enum',
+        symbols
+      });
+      if (error) {
+        return;
+      }
       this.props.onChange({
         type: 'enum',
         symbols: this.state.symbols
@@ -87,6 +108,9 @@ export default class EnumSchemaRow extends Component {
   render() {
     return (
       <div className="enum-schema-row">
+        <div className="text-danger">
+          {this.state.error}
+        </div>
         {
           this.state.symbols.map((symbol, index) => {
             return (
@@ -96,8 +120,9 @@ export default class EnumSchemaRow extends Component {
               >
                 <Input
                   className="field-name"
-                  value={symbol}
-                  onChange={this.onSymbolChange.bind(this, index)}
+                  defaultValue={symbol}
+                  onFocus={() => symbol}
+                  onBlur={this.onSymbolChange.bind(this, index)}
                 />
                 <div className="field-type"></div>
                 <div className="field-isnull">
@@ -110,7 +135,7 @@ export default class EnumSchemaRow extends Component {
                   </div>
                   <div className="btn btn-link">
                     {
-                      this.state.symbols !== 1 ?
+                      this.state.symbols.length !== 1 ?
                         <span
                           className="fa fa-trash text-danger"
                           onClick={this.onSymbolRemove.bind(this, index)}

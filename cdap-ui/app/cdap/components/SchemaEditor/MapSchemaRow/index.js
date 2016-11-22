@@ -25,16 +25,17 @@ require('./MapSchemaRow.less');
 export default class MapSchemaRow extends Component {
   constructor(props) {
     super(props);
-    if (typeof props.row.type === 'object') {
-      let rowType = parseType(props.row.type);
+    if (typeof props.row === 'object') {
+      let rowType = parseType(props.row);
       this.state = {
         name: rowType.name,
         keysType: rowType.type.getKeysType().getTypeName(),
-        parsedKeysType: rowType.type.getKeysType().getTypeName(),
+        parsedKeysType: rowType.type.getKeysType(),
         keysTypeNullable: rowType.nullable,
-        valuesTypes: rowType.type.getValuesType().getTypeName(),
-        parsedValuesType: rowType.type.getValuesType().getTypeName(),
-        valuesTypeNullable: rowType.nullable
+        valuesType: rowType.type.getValuesType().getTypeName(),
+        parsedValuesType: rowType.type.getValuesType(),
+        valuesTypeNullable: rowType.nullable,
+        error: ''
       };
     } else {
       this.state = {
@@ -45,7 +46,8 @@ export default class MapSchemaRow extends Component {
         valuesType: 'string',
         parsedValuesType: 'string',
         valuesTypeNullable: false,
-        type: props.row.type || null
+        type: props.row.type || null,
+        error: ''
       };
     }
     setTimeout(() => {
@@ -73,24 +75,50 @@ export default class MapSchemaRow extends Component {
     });
   }
   onKeysChange(keysState) {
+    let error;
+    if (SCHEMA_TYPES.simpleTypes.indexOf(this.state.keysType) !== -1) {
+      error = this.isInvalid(keysState);
+      if (error) {
+        this.setState({ error });
+        return;
+      }
+    }
     this.setState({
       parsedKeysType: keysState
     }, () => {
+      if (this.isInvalid(this.state.parsedKeysType)) {
+        return;
+      }
       this.props.onChange({
         type: 'map',
         keys: this.state.keysTypeNullable ? [this.state.parsedKeysType, null] : this.state.parsedKeysType,
-        values: this.state.valuesTypeNullable ? [this.state.parsedValuesType, null] : this.state.parsedValuesType
+        values: this.state.valuesTypeNullable ? [this.state.parsedValuesType, null] : this.state.parsedValuesType,
+        error: ''
       });
     });
   }
   onValuesChange(valuesState) {
+    let error;
+    if (SCHEMA_TYPES.simpleTypes.indexOf(this.state.valuesType) !== -1) {
+      error = this.isInvalid(valuesState);
+      if (error) {
+        this.setState({
+          error
+        });
+        return;
+      }
+    }
     this.setState({
       parsedValuesType: valuesState
     }, () => {
+      if (this.isInvalid(this.state.parsedValuesType)) {
+        return;
+      }
       this.props.onChange({
         type: 'map',
         keys: this.state.keysTypeNullable ? [this.state.parsedKeysType, null] : this.state.parsedKeysType,
-        values: this.state.valuesTypeNullable ? [this.state.parsedValuesType, null] : this.state.parsedValuesType
+        values: this.state.valuesTypeNullable ? [this.state.parsedValuesType, null] : this.state.parsedValuesType,
+        error: ''
       });
     });
   }
@@ -108,9 +136,21 @@ export default class MapSchemaRow extends Component {
       this.onValuesChange(this.state.parsedValuesType);
     });
   }
+  isInvalid(parsedTypes) {
+    let error = '';
+    try {
+      avsc.parse(parsedTypes);
+    } catch(e) {
+      error = e.message;
+    }
+    return error;
+  }
   render() {
     return (
       <div className="map-schema-row">
+        <div className="text-danger">
+          {this.state.error}
+        </div>
         <div className="map-schema-kv-row">
           <div className="key-row">
             <div className="field-name">
@@ -134,7 +174,7 @@ export default class MapSchemaRow extends Component {
             {
               checkComplexType(this.state.keysType) ?
                 <AbstractSchemaRow
-                  row={this.state.keysType}
+                  row={this.state.parsedKeysType}
                   onChange={this.onKeysChange.bind(this)}
                 />
               :
@@ -163,7 +203,7 @@ export default class MapSchemaRow extends Component {
               {
                 checkComplexType(this.state.valuesType) ?
                   <AbstractSchemaRow
-                    row={this.state.valuesType}
+                    row={this.state.parsedValuesType}
                     onChange={this.onValuesChange.bind(this)}
                   />
                 :

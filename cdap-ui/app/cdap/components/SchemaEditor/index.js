@@ -33,6 +33,7 @@ export default class SchemaEditor extends Component {
     }
     this.state = {
       parsedRows: rows,
+      rawSchema: state.schema
     };
     const updateRowsAndDisplayFields = () => {
       let state = SchemaStore.getState();
@@ -43,10 +44,14 @@ export default class SchemaEditor extends Component {
         return;
       }
       this.setState({
-        parsedRows: rows
+        parsedRows: rows,
+        rawSchema: state.schema
       });
     };
     SchemaStore.subscribe(updateRowsAndDisplayFields.bind(this));
+  }
+  shouldComponentUpdate(nextProps, nextState) {
+    return nextState.rawSchema.fields.length !== this.state.rawSchema.fields.length;
   }
   onChange(schema) {
     SchemaStore.dispatch({
@@ -77,15 +82,6 @@ export default class SchemaEditor extends Component {
               onChange={this.onChange.bind(this)}
             />
           </div>
-          <pre>
-            {
-              JSON.stringify(
-                SchemaStore.getState(),
-                null,
-                2
-              )
-            }
-          </pre>
         </div>
       </Provider>
     );

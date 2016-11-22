@@ -29,6 +29,11 @@ export default function AbstractSchemaRow({row, onChange}) {
   const renderSchemaRow = (row) => {
     let type = row;
     if (typeof row === 'object') {
+      try {
+        type = avsc.parse(row, {wrapUnions: true});
+      } catch(e) {
+        type = 'string';
+      }
       type = parseType(type).displayType;
     }
     switch(type) {

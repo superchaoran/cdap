@@ -38,7 +38,8 @@ export default class RecordSchemaRow extends Component{
         type: 'record',
         name: 'a' +  uuid.v4().split('-').join(''),
         displayFields,
-        parsedFields
+        parsedFields,
+        error: ''
       };
     } else {
       this.state = {
@@ -57,7 +58,8 @@ export default class RecordSchemaRow extends Component{
         parsedFields: [{
           name: '',
           type: 'string'
-        }]
+        }],
+        error: ''
       };
     }
     setTimeout(() => {
@@ -125,9 +127,18 @@ export default class RecordSchemaRow extends Component{
     let parsedFields = this.state.parsedFields;
     displayFields[index].name = e.target.value;
     parsedFields[index].name = e.target.value;
+    let error;
+    if (SCHEMA_TYPES.simpleTypes.indexOf(displayFields[index].displayType) !== -1) {
+      error = this.isInvalid(parsedFields);
+      if (error) {
+        this.setState({ error });
+        return;
+      }
+    }
     this.setState({
       parsedFields,
-      displayFields
+      displayFields,
+      error: ''
     }, () => {
       let parsedFields = this.state
         .parsedFields
@@ -139,12 +150,27 @@ export default class RecordSchemaRow extends Component{
       });
     });
   }
+  isInvalid(parsedTypes) {
+    let error = '';
+    let parsedType = {
+      name: this.state.name,
+      type: 'record',
+      fields: parsedTypes
+    };
+    try {
+      avsc.parse(parsedType);
+    } catch(e) {
+      error = e.message;
+    }
+    return error;
+  }
   onTypeChange(index, e) {
     let displayFields = this.state.displayFields;
     displayFields[index].displayType = e.target.value;
     displayFields[index].type = e.target.value;
     let parsedFields = this.state.parsedFields;
-    if (Array.isArray(parsedFields[index].type)) {
+    let error;
+    if (displayFields[index].nullable) {
       parsedFields[index].type = [
         e.target.value,
         null
@@ -152,17 +178,29 @@ export default class RecordSchemaRow extends Component{
     } else {
       parsedFields[index].type = e.target.value;
     }
+    if (SCHEMA_TYPES.simpleTypes.indexOf(displayFields[index].displayType) !== -1) {
+      error = this.isInvalid(parsedFields);
+      if (error) {
+        this.setState({ error });
+        return;
+      }
+    }
     this.setState({
       displayFields,
-      parsedFields
+      parsedFields,
+      error: ''
     }, () => {
+      let error = this.isInvalid(this.state.parsedFields);
+      if (error) {
+        return;
+      }
       let parsedFields = this.state
         .parsedFields
         .filter(field => field.name && field.type);
       this.props.onChange({
         name: this.state.name,
         type: 'record',
-        fields: parsedFields
+        fields: parsedFields,
       });
     });
   }
@@ -206,9 +244,18 @@ export default class RecordSchemaRow extends Component{
     } else {
       parsedFields[index].type = fieldType;
     }
+
+    let error = this.isInvalid(parsedFields);
+    if (error) {
+      return;
+    }
     this.setState({
-      parsedFields
-    }, () => {
+      parsedFields,
+      error: ''
+    }, function() {
+      if (this.isInvalid(this.state.parsedFields)) {
+        return;
+      }
       let parsedFields = this.state
         .parsedFields
         .filter(field => field.name && field.type);
@@ -220,8 +267,12 @@ export default class RecordSchemaRow extends Component{
     });
   }
   render() {
+    console.log('Inside Record Schema Render');
     return (
       <div className="record-schema-row">
+        <div className="text-danger">
+          {this.state.error}
+        </div>
         {
           this.state
               .displayFields

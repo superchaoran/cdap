@@ -19,6 +19,7 @@ import {parseType, SCHEMA_TYPES, checkComplexType} from 'components/SchemaEditor
 import SelectWithOptions from 'components/SelectWithOptions';
 import AbstractSchemaRow from 'components/SchemaEditor/AbstractSchemaRow';
 import {Input} from 'reactstrap';
+import {insertAt, removeAt} from 'services/helpers';
 import uuid from 'node-uuid';
 
 require('./UnionSchemaRow.less');
@@ -118,20 +119,13 @@ export default class UnionSchemaRow extends Component {
   onTypeAdd(index) {
     let displayTypes = this.state.displayTypes;
     let parsedTypes = this.state.parsedTypes;
-    displayTypes = [
-      ...displayTypes.slice(0, index + 1),
-      {
-        type: 'string',
-        id: uuid.v4(),
-        nullable: false
-      },
-      ...displayTypes.slice(index + 1, displayTypes.length)
-    ];
-    parsedTypes = [
-      ...parsedTypes.slice(0, index + 1),
-      'string',
-      ...parsedTypes.slice(index + 1, parsedTypes.length)
-    ];
+    displayTypes = insertAt(displayTypes, index, {
+      type: 'string',
+      displayType: 'string',
+      id: uuid.v4(),
+      nullable: false
+    });
+    parsedTypes = insertAt(parsedTypes, index, 'string');
     this.setState({ displayTypes, parsedTypes }, () => {
       this.props.onChange(this.state.parsedTypes);
     });
@@ -139,14 +133,8 @@ export default class UnionSchemaRow extends Component {
   onTypeRemove(index) {
     let displayTypes = this.state.displayTypes;
     let parsedTypes = this.state.parsedTypes;
-    displayTypes = [
-      ...displayTypes.slice(0, index),
-      ...displayTypes.slice(index + 1, displayTypes.length)
-    ];
-    parsedTypes = [
-      ...parsedTypes.slice(0, index),
-      ...parsedTypes.slice(index + 1, parsedTypes.length)
-    ];
+    displayTypes = removeAt(displayTypes, index);
+    parsedTypes = removeAt(parsedTypes, index);
     this.setState({ displayTypes, parsedTypes }, () => {
       this.props.onChange(this.state.parsedTypes);
     });

@@ -21,6 +21,7 @@ require('./RecordSchemaRow.less');
 import uuid from 'node-uuid';
 import {Input} from 'reactstrap';
 import SelectWithOptions from 'components/SelectWithOptions';
+import {insertAt, removeAt} from 'services/helpers';
 
 export default class RecordSchemaRow extends Component{
   constructor(props) {
@@ -76,19 +77,12 @@ export default class RecordSchemaRow extends Component{
   onRowAdd(index) {
     let displayFields = this.state.displayFields;
     let parsedFields = this.state.parsedFields;
-    const insertIntoArray = (arr, ele) => {
-      return [
-        ...arr.slice(0, index + 1),
-        ele,
-        ...arr.slice(index + 1, displayFields.length)
-      ];
-    };
-    displayFields = insertIntoArray(displayFields, {
+    displayFields = insertAt(displayFields, index, {
       name: '',
       displayType: 'string',
       id: uuid.v4()
     });
-    parsedFields = insertIntoArray(parsedFields, {
+    parsedFields = insertAt(parsedFields, index, {
       name: '',
       type: 'string'
     });
@@ -100,14 +94,8 @@ export default class RecordSchemaRow extends Component{
   onRowRemove(index) {
     let displayFields = this.state.displayFields;
     let parsedFields = this.state.parsedFields;
-    const removeElementAtArray = (arr, index) => {
-      return [
-        ...arr.slice(0, index),
-        ...arr.slice(index + 1, arr.length)
-      ];
-    };
-    displayFields = removeElementAtArray(displayFields, index);
-    parsedFields = removeElementAtArray(parsedFields, index);
+    displayFields = removeAt(displayFields, index);
+    parsedFields = removeAt(parsedFields, index);
     this.setState({
       displayFields,
       parsedFields

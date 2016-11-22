@@ -17,6 +17,8 @@
 import React, {PropTypes, Component} from 'react';
 import {parseType} from 'components/SchemaEditor/SchemaHelpers';
 import {Input} from 'reactstrap';
+import {insertAt, removeAt} from 'services/helpers';
+import uuid from 'node-uuid';
 require('./EnumSchemaRow.less');
 
 export default class EnumSchemaRow extends Component {
@@ -69,11 +71,7 @@ export default class EnumSchemaRow extends Component {
 
   onSymbolAdd(index, e) {
     let symbols = this.state.symbols;
-    symbols = [
-      ...symbols.slice(0, index + 1),
-      e.target.value || '',
-      ...symbols.slice(index + 1, symbols.length)
-    ];
+    symbols = insertAt(symbols, index, e.target.value || '');
     this.setState({symbols}, () => {
       let error = this.isInvalid({
         type: 'enum',
@@ -91,10 +89,7 @@ export default class EnumSchemaRow extends Component {
 
   onSymbolRemove(index) {
     let symbols = this.state.symbols;
-    symbols = [
-      ...symbols.slice(0, index),
-      ...symbols.slice(index + 1, symbols.length)
-    ];
+    symbols = removeAt(symbols, index);
     this.setState({
       symbols
     }, () => {
@@ -116,7 +111,7 @@ export default class EnumSchemaRow extends Component {
             return (
               <div
                 className="enum-schema-symbols-row"
-                key={index}
+                key={uuid.v4()}
               >
                 <Input
                   className="field-name"
